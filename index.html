@@ -347,6 +347,45 @@ const SUB={
   'Scapular Push-up':[['Push-ups','10'],['Band Pull-apart','12'],['Ring Row','8']],
   'Dead Bug':[['Hollow Hold','20 s'],['V-up','8'],['Plank','30 s']]
 };
+const STRENGTH_VARIANTS={
+  'Bench Press':['Bench Press','Incline DB Press','Close-Grip Bench Press','DB Bench Press'],
+  'Strict Press':['Strict Press','Seated DB Press','Landmine Press','Push Press'],
+  'Bulgarian Split Squat':['Bulgarian Split Squat','Walking Lunge','Front-Foot Elevated Split Squat','Step-up'],
+  'Chest-supported Row':['Chest-supported Row','1-arm DB Row','Cable Row','Seal Row'],
+  'Pull-up':['Pull-up','Chin-up','Neutral-grip Pull-up','Lat Pulldown'],
+  'Romanian Deadlift':['Romanian Deadlift','Single-leg RDL','Hip Thrust','Good Morning']
+};
+const STRENGTH_TAGS={
+  'Bench Press':'horizontal push','Incline DB Press':'horizontal push','Close-Grip Bench Press':'horizontal push','DB Bench Press':'horizontal push',
+  'Strict Press':'vertical push','Seated DB Press':'vertical push','Landmine Press':'vertical push','Push Press':'vertical push',
+  'Bulgarian Split Squat':'unilateral lower','Walking Lunge':'unilateral lower','Front-Foot Elevated Split Squat':'unilateral lower','Step-up':'unilateral lower',
+  'Chest-supported Row':'horizontal pull','1-arm DB Row':'horizontal pull','Cable Row':'horizontal pull','Seal Row':'horizontal pull',
+  'Pull-up':'vertical pull','Chin-up':'vertical pull','Neutral-grip Pull-up':'vertical pull','Lat Pulldown':'vertical pull',
+  'Romanian Deadlift':'posterior chain','Single-leg RDL':'posterior chain','Hip Thrust':'posterior chain','Good Morning':'posterior chain'
+};
+function strengthVariant(base,w){
+  const a=STRENGTH_VARIANTS[base];if(!a)return base;
+  if(w<=2)return a[0];
+  if(w<=4)return a[(w-1)%a.length];
+  if(w===5)return a[0];
+  if(w<=7)return a[(w)%a.length];
+  return a[0];
+}
+function strengthAccessoryPlan(ex,w){
+  const tag=STRENGTH_TAGS[ex]||'accessory';
+  let p=w===5?'2×8–10':w>=6?'3×6–10':'3×8–12';
+  const f=fatigueStatus(),ri=readinessImpact();
+  if(f.level==='high'||ri.level==='red')p='2×6–10';
+  return {tag,p};
+}
+function strengthMovementBalance(w){
+  const prof=weeklyLoadProfile(w),notes=[];
+  if(prof.squat>5)notes.push('squat volumen iz WOD-a visok');
+  if(prof.hinge>5)notes.push('hinge volumen iz WOD-a visok');
+  if(prof.push>prof.pull*1.5)notes.push('push > pull u WOD-ovima');
+  if(prof.pull>prof.push*1.8)notes.push('pull > push u WOD-ovima');
+  return notes.length?notes.join(' · '):'Strength/WOD volumen je uravnotežen.';
+}
 function scheme(ex,w){
   const primary={
     'Back Squat':[.70,.725,.75,.775,.65,.80,.825,.85],
@@ -467,11 +506,15 @@ function recommendation(ex,w){
   return Math.max(0,round25(out));
 }
 function planLabel(ex,w){
-  const v=recommendation(ex,w);
-  const ar=autoregulation(ex,w);
+  const primary=['Back Squat','Deadlift','Bench Press','Strict Press'].includes(ex);
+  if(!primary){
+    const a=strengthAccessoryPlan(ex,w);
+    return ' · '+a.tag+' · '+a.p;
+  }
+  const v=recommendation(ex,w),ar=autoregulation(ex,w);
   if(!v)return '';
-  const tag=ar.status==='deload'?' · DELOAD':ar.status==='fatigue'?' · ⚠️ UMOR':'';
-  return ' · predloženo '+v+' kg'+tag;
+  const tag=ar.status==='deload'?' · DELOAD':ar.status==='fatigue'?' · ⚠️ UMOR':ar.status==='caution'?' · OPREZ':'';
+  return ' · predloženo '+v+' kg · '+Math.round((scheme(ex,w)||0)*100)+'%'+tag;
 }
 function adaptiveStrengthPrescription(p){
   const f=fatigueStatus(),m=String(p).match(/^(\d+)×(.+)$/);
@@ -483,8 +526,18 @@ function adaptiveStrengthPrescription(p){
 function strength(d,w){
   const squat=w===1?'4×6':w===2?'4×6':w===3?'5×5':w===4?'5×4':w===5?'3×5':w===6?'5×4':w===7?'4×3':'3×3';
   const dead=w===1?'4×5':w===2?'4×5':w===3?'5×4':w===4?'5×4':w===5?'3×4':w===6?'5×3':w===7?'4×3':'3×2';
-  if(d===1)return [['Back Squat',adaptiveStrengthPrescription(squat)],['Bench Press',adaptiveStrengthPrescription('4×6')],['Bulgarian Split Squat',adaptiveStrengthPrescription('3×8')],['Chest-supported Row',adaptiveStrengthPrescription('3×10')]];
-  return [['Deadlift',adaptiveStrengthPrescription(dead)],['Strict Press',adaptiveStrengthPrescription('4×6')],['Pull-up',adaptiveStrengthPrescription('4×6–10')],['Romanian Deadlift',adaptiveStrengthPrescription('3×8')]];
+  if(d===1)return [
+    ['Back Squat',adaptiveStrengthPrescription(squat)],
+    [strengthVariant('Bench Press',w),adaptiveStrengthPrescription(w===5?'2×8':w>=6?'4×6':'3×8')],
+    [strengthVariant('Bulgarian Split Squat',w),adaptiveStrengthPrescription(w===5?'2×8':w>=6?'3×6':'3×8')],
+    [strengthVariant('Chest-supported Row',w),adaptiveStrengthPrescription(w===5?'2×10':w>=6?'3×8':'3×10')]
+  ];
+  return [
+    ['Deadlift',adaptiveStrengthPrescription(dead)],
+    [strengthVariant('Strict Press',w),adaptiveStrengthPrescription(w===5?'2×8':w>=6?'4×6':'3×8')],
+    [strengthVariant('Pull-up',w),adaptiveStrengthPrescription(w===5?'2×6':w>=6?'3×5':'3×6–10')],
+    [strengthVariant('Romanian Deadlift',w),adaptiveStrengthPrescription(w===5?'2×8':w>=6?'3×6':'3×8')]
+  ];
 }
 function render(s){
   sel=dayDate(s);
@@ -520,7 +573,7 @@ function render(s){
     $('body').innerHTML='<div class="card"><b>Projektirani 1RM test</b><p class="muted">Danas testiramo Back Squat, Deadlift, Bench Press i Strict Press. Za svaku vježbu dođi do približno 90% očekivanog maksimuma i napravi maksimalan broj tehnički kvalitetnih ponavljanja.</p><p class="muted">Preporuka: 2–6 ponavljanja. Nakon svake vježbe upiši rezultat u Postavke → Projektirani 1RM.</p></div><div class="grid2"><div class="card"><b>1</b><br>Back Squat</div><div class="card"><b>2</b><br>Deadlift</div><div class="card"><b>3</b><br>Bench Press</div><div class="card"><b>4</b><br>Strict Press</div></div>';
     $('start').style.display='block';
   }else if(x[1].startsWith('STRENGTH')){
-    $('body').innerHTML='<div class="card"><b>Predložene težine</b><p class="muted">1RM + tjedni plan + prethodni RPE. Aplikacija predlaže, ti odlučuješ.</p></div>'+strength(dow,w).map(e=>'<div class="ex"><b>'+e[0]+'</b><div class="muted">'+e[1]+planLabel(e[0],w)+'</div></div>').join('');
+    $('body').innerHTML='<div class="card"><b>Predložene težine</b><p class="muted">Glavni liftovi imaju progresiju preko 1RM-a. Sekundarni i accessory pokreti rotiraju se po obrascu kretanja, bez gubitka kontinuiteta.</p><p class="muted">'+strengthMovementBalance(w)+'</p></div>'+strength(dow,w).map(e=>'<div class="ex"><b>'+e[0]+'</b><div class="muted">'+e[1]+planLabel(e[0],w)+'</div></div>').join('');
     $('start').style.display='block';
   }else{
     const z=activeWod(w,dow,iso(sel));
@@ -563,7 +616,7 @@ function startWorkout(){
       '<div class="card"><b>Redoslijed</b><p class="muted">1. Back Squat → 2. Deadlift → 3. Bench Press → 4. Strict Press</p><p class="muted">Odmor između glavnih testova 3–5 min, prema potrebi i više ako želiš kvalitetan rezultat.</p></div>';
   }else if(x[1].startsWith('STRENGTH')){
     const ex=strength(q.dow,q.w);
-    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">STRENGTH SESSION</div><h2>'+x[1]+'</h2><p class="muted">Upiši stvarno odrađenu težinu, ponavljanja i RPE po seriji. ✓ označava završenu seriju.</p></div>'+
+    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">STRENGTH SESSION</div><h2>'+x[1]+'</h2><p class="muted">Upiši stvarno odrađenu težinu, ponavljanja i RPE po seriji. ✓ označava završenu seriju.</p><div class="card"><b>Movement balance</b><p class="muted">'+strengthMovementBalance(q.w)+'</p></div></div>'+
     ex.map((e,ei)=>{const n=parseInt(e[1])||3;const suggested=recommendation(e[0],q.w);const isPrimary=['Back Squat','Deadlift','Bench Press','Strict Press'].includes(e[0]);const suggestedKg=suggested&&isPrimary?suggested:'';return '<div class="ex"><div class="row"><div><b>'+e[0]+'</b><div class="muted">Plan · '+e[1]+planLabel(e[0],q.w)+'</div></div></div>'+Array.from({length:n},(_,j)=>'<div class="set" data-setrow><span>'+(j+1)+'</span><input data-exercise="'+e[0]+'" data-w type="number" inputmode="decimal" value="'+suggestedKg+'" placeholder="kg"><input data-exercise="'+e[0]+'" data-r type="number" inputmode="numeric" placeholder="reps"><input data-exercise="'+e[0]+'" data-rpe type="number" step=".5" inputmode="decimal" placeholder="RPE"><button class="setcheck" data-ok type="button">○</button></div>').join('')+'</div>';}).join('');
     document.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{b.textContent=b.textContent==='✓'?'○':'✓';b.closest('.set').classList.toggle('done');});
   }else{
