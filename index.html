@@ -91,25 +91,45 @@ function lastExercise(ex){
   }
   return [];
 }
+function fatigueStatus(){
+  const logs=S.logs||[];
+  const recent=logs.slice(-8);
+  const strength=recent.filter(x=>x.type==='strength');
+  const rpes=[];
+  strength.forEach(x=>(x.sets||[]).forEach(s=>{if(s.rpe)rpes.push(Number(s.rpe));}));
+  const avg=rpes.length?rpes.reduce((a,b)=>a+b,0)/rpes.length:null;
+  const high=rpes.filter(x=>x>=9).length;
+  if(avg!==null && (avg>=8.8 || high>=3)) return {level:'high',label:'ACCUMULATED FATIGUE',note:'Smanji volumen 20–30% i zadrži 2–3 RIR dok se RPE ne normalizira.'};
+  if(avg!==null && avg>=8.2) return {level:'moderate',label:'POVIŠEN UMOR',note:'Zadrži ili malo smanji opterećenje; ne povećavaj volumen.'};
+  return {level:'normal',label:'NORMALNO OPTEREĆENJE',note:'Nastavi prema planu i koristi RPE za finu korekciju.'};
+}
+function autoregulation(ex,w){
+  const f=fatigueStatus();
+  if(w===5)return {status:'deload',label:'DELOAD',note:'Planirani deload: smanji volumen i intenzitet.'};
+  if(f.level==='high')return {status:'fatigue',label:f.label,note:f.note};
+  return {status:'normal',label:f.label,note:f.note};
+}
 function recommendation(ex,w){
-  const rm=S.rm[ex==='Back Squat'?'squat':ex==='Deadlift'?'deadlift':ex==='Bench Press'?'bench':ex==='Strict Press'?'press':ex];
-  let base=rm&&scheme(ex,w)?round25(rm*scheme(ex,w)):null;
+  const base=round25((S.rm[ex]||0)*scheme(ex,w));
+  if(!base)return 0;
+  const ar=autoregulation(ex,w);
+  let out=base;
+  if(ar.status==='deload') out=round25(base*0.92);
   const prev=lastExercise(ex);
-  if(prev.length){
-    const rpes=prev.filter(s=>s.rpe).map(s=>+s.rpe);
-    const avg=rpes.length?rpes.reduce((a,b)=>a+b,0)/rpes.length:null;
-    const last=round25(prev[prev.length-1].kg);
-    if(!base)base=last;
-    if(avg!==null){
-      if(avg<=7.5)base+=2.5;
-      else if(avg>8.5)base-=2.5;
-    }
+  if(prev && ar.status==='normal'){
+    const rs=prev.map(s=>Number(s.rpe)).filter(Boolean);
+    const avg=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null;
+    if(avg!==null && avg<=7.5)out+=2.5;
+    if(avg!==null && avg>8.5)out-=2.5;
   }
-  return base?Math.max(2.5,round25(base)):null;
+  return Math.max(0,round25(out));
 }
 function planLabel(ex,w){
-  const r=recommendation(ex,w);
-  return r?' · predloženo '+r+' kg':'';
+  const v=recommendation(ex,w);
+  const ar=autoregulation(ex,w);
+  if(!v)return '';
+  const tag=ar.status==='deload'?' · DELOAD':ar.status==='fatigue'?' · ⚠️ UMOR':'';
+  return ' · predloženo '+v+' kg'+tag;
 }
 function strength(d,w){
   const squat=w===1?'4×6':w===2?'4×6':w===3?'5×5':w===4?'5×4':w===5?'3×5':w===6?'5×4':w===7?'4×3':'3×3';
@@ -166,6 +186,9 @@ function modify(){
   $('apply').onclick=()=>{document.querySelectorAll('[data-mod]').forEach(e=>{if(e.value)S.mods[z[0]+'|'+e.dataset.mod]=e.value.split('|');});save();$('modal').classList.add('hidden');render(iso(sel));};
 }
 function startWorkout(){
+  const ar=autoregulation('',info(iso(sel)).w);
+  if(ar.status!=='normal') toast((ar.status==='deload'?'🔄 ':'⚠️ ')+ar.label+': '+ar.note);
+
   const q=info(iso(sel)),x=DAYS[q.dow];
   $('active').classList.remove('hidden');
   $('activeTitle').textContent=x[1];
@@ -196,7 +219,10 @@ function saveWorkout(){
   save();$('active').classList.add('hidden');toast('✓ Trening spremljen');renderLog();renderProgress();render(iso(sel));
 }
 function renderLog(){$('logs').innerHTML=S.logs.length?S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="ex"><b>'+dayDate(l.date).toLocaleDateString('hr-HR')+'</b> · '+l.type+'<br><span class="muted">'+l.session+' · '+(l.result||'bez scorea')+' · RPE '+(l.rpe||'—')+'</span></div>').join(''):'<p class="muted">Nema treninga.</p>';}
-function renderProgress(){$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';}
+function renderProgress(){
+  const ar=autoregulation('',S.week||1);
+  const fatigueCard='<div class="card" id="fatigueCard"><div class="eyebrow">AUTOREGULACIJA</div><b>'+ar.label+'</b><p class="muted">'+ar.note+'</p></div>';
+$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';}
 function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),1800);}
 function setupNav(){
   document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{
