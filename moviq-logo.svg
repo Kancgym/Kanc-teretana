@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 190">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#16e0ff"/><stop offset=".48" stop-color="#087cff"/><stop offset="1" stop-color="#2638ff"/></linearGradient></defs>
+<rect width="640" height="190" fill="none"/>
+<g transform="translate(18 8)">
+<path d="M0 78 L0 8 L92 67 L184 8 L184 78 L150 99 L150 45 L92 82 L34 45 L34 99 Z" fill="url(#g)" stroke="#16e0ff" stroke-width="2"/>
+<path d="M184 78 L150 99 L150 45 L184 24 Z" fill="#0b5cff" opacity=".9"/>
+</g>
+<text x="218" y="91" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="800" letter-spacing="2" fill="#fff">MOVI</text>
+<text x="430" y="91" font-family="Arial,Helvetica,sans-serif" font-size="62" font-weight="800" letter-spacing="2" fill="url(#g)">Q</text>
+<rect x="220" y="112" width="270" height="2" rx="1" fill="#16d9ff"/>
+<text x="220" y="138" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="700" letter-spacing="4" fill="#eaf6ff">SPORTS PERFORMANCE PLATFORM</text>
+</svg>
