@@ -11,20 +11,156 @@
 <section id="settings" class="hidden"><div class="card"><div class="eyebrow">PROGRAM</div><h2>Početak</h2><input id="startDate" type="date" style="width:100%;margin-top:6px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></div><div class="card"><div class="eyebrow">1RM</div><div class="grid2"><label>Back Squat<input id="rm_squat" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Deadlift<input id="rm_deadlift" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Bench Press<input id="rm_bench" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Strict Press<input id="rm_press" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label></div><button class="primary" id="saveRM" style="width:100%;margin-top:10px">Spremi 1RM</button></div><div class="card"><b>Podaci</b><p class="muted">Export/import čuva logbook i postavke.</p><button id="export">⬇ Export JSON</button><button id="imp">⬆ Import JSON</button><input id="file" type="file" accept="application/json" class="hidden"></div></section>
 </main><div id="modal" class="modal hidden"><div class="sheet" id="sheet"></div></div><div id="toast" class="toast hidden"></div>
 <script>
-const D=[['PON','WOD 1','Mixed conditioning'],['UTO','STRENGTH A','Squat + press'],['SRI','WOD 2','Olympic lifting + engine'],['ČET','REST','Recovery'],['PET','STRENGTH B','Deadlift + pull'],['SUB','WOD 3','Aerobic mixed modal'],['NED','REST','Recovery']],P=['BASE','BASE','BUILD','BUILD','DELOAD','INTENSIFICATION','INTENSIFICATION','TEST'];
-let S={start:'2026-10-05',logs:[],rm:{},mods:{},prs:0};try{const raw=window.localStorage?localStorage.getItem('kanc_training'):null;if(raw){const old=JSON.parse(raw);if(old&&typeof old==='object')S=Object.assign(S,old)}}catch(e){}S.logs=Array.isArray(S.logs)?S.logs:[];S.rm=S.rm&&typeof S.rm==='object'?S.rm:{};S.mods=S.mods&&typeof S.mods==='object'?S.mods:{};S.prs=Number.isFinite(+S.prs)?+S.prs:0;S.start=typeof S.start==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(S.start)?S.start:'2026-10-05';let sel=new Date();let timer=null;
-const $=x=>document.getElementById(x),iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10),date=s=>new Date(s+'T12:00'),saveState=()=>{try{if(window.localStorage)localStorage.setItem('kanc_training',JSON.stringify(S))}catch(e){}};
-function info(s=iso(sel)){let a=Math.floor((date(s)-date(S.start))/86400000),w=Math.max(1,Math.min(8,Math.floor(a/7)+1)),dow=(date(s).getDay()+6)%7;return{w,dow}}function phase(){return P[info().w-1]}
-function wod(w,d){let x=w===5?['12′ easy AMRAP','AMRAP',[['Row','8 cal'],['Goblet Squat','8'],['Push-up','8'],['Run','100 m']]]:w===8?['Benchmark 10′ AMRAP','AMRAP',[['Row','10 cal'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]]:w>=6?[['8′ AMRAP','AMRAP',[['Power Snatch','8'],['Burpees','10'],['Box Jump','12']]],['For Time · 16′ cap','FOR TIME',[['Run','800 m'],['Thruster','30'],['Pull-up','20'],['Run','400 m']]],['30′ EMOM','EMOM',[['Bike','12 cal'],['KB Swing','10'],['Burpees','8'],['Rest','—']]]][d===0?0:d===2?1:2]:w>=3?[['10′ AMRAP','AMRAP',[['Bike','12 cal'],['Toes-to-Bar','10'],['DB Thruster','10'],['Burpees','8']]],['EMOM 18′','EMOM',[['Row','10 cal'],['Clean & Jerk','6'],['Pull-up','10']]],['30′ Mixed','MIXED',[['Row','500 m'],['Run','400 m'],['Wall Ball','20'],['KB Swing','15']]]][d===0?0:d===2?1:2]:[['12′ AMRAP','AMRAP',[['Row','10 cal'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]],['5 Rounds','ROUNDS',[['Row','250 m'],['Power Clean','6'],['Box Jump','8'],['Push-ups','10']]],['24′ AMRAP','AMRAP',[['Run','400 m'],['Wall Ball','15'],['DB Snatch','12'],['Sit-up','10']]]][d===0?0:d===2?1:2];return x}
-const SUB={Row:[['Run','400 m'],['Bike','12 cal'],['SkiErg','10 cal']],Run:[['Bike','12 cal'],['Row','500 m'],['SkiErg','10 cal']],Bike:[['Run','300 m'],['Row','400 m'],['SkiErg','10 cal']],'Pull-up':[['Ring Row','10'],['Lat Pulldown','10']],Burpees:[['Bike','10 cal'],['Run','100 m']],'Wall Ball':[['Goblet Squat','15'],['DB Thruster','10']]};
-function strength(d,w){let a=d===1?[['Back Squat',w===1?'4×6':w===2?'4×6':w===3?'5×5':w===4?'5×4':w===5?'3×5':w===6?'5×4':w===7?'4×3':'3×3'],['Bench Press','4×6'],['Bulgarian Split Squat','3×8'],['Chest-supported Row','3×10']]:[['Deadlift',w===1?'4×5':w===2?'4×5':w===3?'5×4':w===4?'5×4':w===5?'3×4':w===6?'5×3':w===7?'4×3':'3×2'],['Strict Press','4×6'],['Pull-up','4×6–10'],['Romanian Deadlift','3×8']];return a}
-function load(s){sel=new Date((s||iso(new Date()))+'T12:00');let inf=info(iso(sel)),w=inf.w,dow=inf.dow,x=D[dow];$('title').textContent='Danas · '+sel.toLocaleDateString('hr-HR',{day:'2-digit',month:'2-digit',year:'numeric'});$('phase').textContent=P[w-1];$('date').textContent=sel.toLocaleDateString('hr-HR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});$('week').textContent='Tjedan '+w+' · '+P[w-1];$('type').textContent=x[1];$('session').textContent=x[0]+' · '+x[1];$('focus').textContent=x[2];$('days').innerHTML=D.map(function(z,i){return '<button class="'+(i===dow?'sel':'')+'" data-d="'+i+'">'+z[0]+'<br><small>'+z[1]+'</small></button>'}).join('');document.querySelectorAll('[data-d]').forEach(function(btn){btn.onclick=function(){let n=new Date(sel);n.setDate(n.getDate()+(Number(btn.dataset.d)-dow));load(iso(n))}});if(x[1]==='REST'){$('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>'}else if(x[1].startsWith('STRENGTH')){$('body').innerHTML=strength(dow,w).map(function(e,i){return '<div class="ex"><b>'+e[0]+'</b><div class="muted">'+e[1]+'</div></div>'}).join('')}else{let z=wod(w,dow);$('body').innerHTML='<div class="ex"><b>'+z[0]+'</b><div style="margin-top:7px">'+z[2].map(function(m){let q=S.mods[z[0]+'|'+m[0]]||m;return '<span class="pill" style="display:inline-block;margin:2px">'+q[0]+' · '+q[1]+'</span>'}).join('')+'</div><p class="muted">Original ostaje spremljen čak i ako ga modificiraš.</p></div>'}$('start').style.display=x[1]==='REST'?'none':'';drawCal()}function drawCal(){let y=sel.getFullYear(),m=sel.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),lead=(first.getDay()+6)%7,h='<div style="grid-column:1/-1;text-align:center;font-weight:800;padding:7px">'+sel.toLocaleDateString('hr-HR',{month:'long',year:'numeric'})+'</div>';for(let i=0;i<lead;i++)h+='<div style="border:0"></div>';for(let n=1;n<=last.getDate();n++){let s=iso(new Date(y,m,n)),done=S.logs.some(l=>l.date===s);h+='<div class="'+(s===iso(sel)?'today ':'')+(done?'done':'')+'" data-date="'+s+'">'+n+(done?' ✓':'')}</div>}$('cal').innerHTML=h;document.querySelectorAll('[data-date]').forEach(x=>x.onclick=()=>load(x.dataset.date))}
-function modify(){let {w,dow}=info(),x=wod(w,dow);if(!x)return;$('sheet').innerHTML='<div class="row"><h2>🔄 Promijeni trening</h2><button id="close">✕</button></div><p class="muted">Originalni plan se ne mijenja. Promjena se pamti kao stvarna izvedba.</p>'+x[2].map(m=>'<div class="card"><b>'+m[0]+'</b><div class="muted">Plan: '+m[1]+'</div><select data-mod="'+m[0]+'"><option value="">Original · '+m[1]+'</option>'+((SUB[m[0]]||[]).map(o=>'<option value="'+o[0]+'|'+o[1]+'">'+o[0]+' · '+o[1]+'</option>').join(''))+'</select></div>').join('')+'<button class="primary" id="apply" style="width:100%">Primijeni</button>';$('modal').classList.remove('hidden');$('close').onclick=()=>$('modal').classList.add('hidden');$('apply').onclick=()=>{document.querySelectorAll('[data-mod]').forEach(e=>{if(e.value)S.mods[x[0]+'|'+e.dataset.mod]=e.value.split('|')});saveState();$('modal').classList.add('hidden');load(iso(sel));toast('Promjena spremljena')}}
-function start(){let {w,dow}=info(),x=D[dow];$('active').classList.remove('hidden');$('activeTitle').textContent=x[1];if(x[1].startsWith('STRENGTH'))$('activeBody').innerHTML=strength(dow,w).map((e,i)=>{let n=parseInt(e[1]);return '<div class="ex"><b>'+e[0]+'</b><div class="muted">Plan: '+e[1]+'</div>'+Array.from({length:isNaN(n)?3:n},(_,j)=>'<div class="set"><span>'+ (j+1)+'</span><input data-w type="number" placeholder="kg"><input data-r type="number" placeholder="reps"><input data-rpe type="number" step=".5" placeholder="RPE"><input data-ok type="checkbox"></div>').join('')+'</div>'}).join('');else{let x=wod(w,dow);$('activeBody').innerHTML='<div class="card"><b>'+x[1]+'</b><h3>'+x[0]+'</h3><p>'+x[2].map(m=>m[0]+' · '+m[1]).join(' · ')+'</p></div>'}}
-function saveWorkout(){let {w,dow}=info(),x=D[dow];let sets=[...document.querySelectorAll('[data-w]')].map((e,i)=>({kg:+e.value||null,reps:+document.querySelectorAll('[data-r]')[i].value||null,rpe:+document.querySelectorAll('[data-rpe]')[i].value||null,done:document.querySelectorAll('[data-ok]')[i].checked}));let l={date:iso(sel),week:w,type:x[1],session:x[0],rpe:+$('rpe').value||null,mins:+$('mins').value||null,result:$('result').value,note:$('note').value,sets,mods:{}};let k=x[1].startsWith('WOD')?wod(w,dow)?.[0]:'';Object.keys(S.mods).forEach(q=>{if(q.startsWith(k+'|'))l.mods[q]=S.mods[q]});S.logs=S.logs.filter(a=>a.date!==l.date);S.logs.push(l);let best=0;sets.forEach(z=>{if(z.done&&z.kg&&z.reps)best=Math.max(best,z.kg*(1+z.reps/30))});if(best&&x[1].startsWith('STRENGTH'))S.prs++;saveState();toast('✓ Trening spremljen');renderLog();renderProgress()}
-function renderLog(){$('logs').innerHTML=S.logs.length?S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="ex"><b>'+date(l.date).toLocaleDateString('hr-HR')+'</b> · '+l.type+'<br><span class="muted">'+(l.session||'')+' · '+(l.result||'bez scorea')+' · RPE '+(l.rpe||'—')+'</span>'+(Object.keys(l.mods||{}).length?'<br>🔄 modificirano':'')+'</div>').join(''):'<p class="muted">Nema treninga.</p>'}
-function renderProgress(){$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga u 8 tjedana.'}
-function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),1800)}
-function nav(){document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');['today','program','log','progress','settings'].forEach(id=>$(id).classList.toggle('hidden',id!==b.dataset.p));if(b.dataset.p==='program')$('weeks').innerHTML=P.map((p,i)=>'<div class="card"><b>W'+(i+1)+' · '+p+'</b><p class="muted">PON WOD 1 · UTO Strength A · SRI WOD 2 · ČET Rest · PET Strength B · SUB WOD 3 · NED Rest</p></div>').join('');if(b.dataset.p==='log')renderLog();if(b.dataset.p==='progress')renderProgress();if(b.dataset.p==='settings'){ $('startDate').value=S.start;['squat','deadlift','bench','press'].forEach(k=>$('rm_'+k).value=S.rm[k]||'')}})}
-$('start').onclick=start;$('modify').onclick=modify;$('finish').onclick=()=>{$('active').classList.add('hidden')};document.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>{clearInterval(timer);let e=Date.now()+b.dataset.rest*1000;timer=setInterval(()=>{let q=Math.max(0,e-Date.now());$('timer').textContent=new Date(q).toISOString().slice(14,19);if(!q){clearInterval(timer);toast('⏱ Odmor gotov')}} ,250)});$('save').onclick=saveWorkout;$('clear').onclick=()=>{S.logs=[];saveState();renderLog();renderProgress()};$('startDate').onchange=e=>{S.start=e.target.value;saveState();load(iso(sel))};$('saveRM').onclick=()=>{['squat','deadlift','bench','press'].forEach(k=>S.rm[k]=+$('rm_'+k).value||null);saveState();toast('1RM spremljen');load(iso(sel))};$('export').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='kanc-training-backup.json';a.click()};$('imp').onclick=()=>$('file').click();$('file').onchange=e=>{let r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);saveState();load(iso(sel));toast('Backup uvezen')}catch{toast('Neispravan backup')}};r.readAsText(e.target.files[0])};try{nav();load(iso(sel))}catch(e){document.body.insertAdjacentHTML('beforeend','<div class="toast" style="display:block">Greška pri učitavanju. Osvježi stranicu.</div>');console.error(e)}
+const DAYS=[
+  ['PON','WOD 1','Mixed conditioning'],
+  ['UTO','STRENGTH A','Squat + press'],
+  ['SRI','WOD 2','Olympic lifting + engine'],
+  ['ČET','REST','Recovery'],
+  ['PET','STRENGTH B','Deadlift + pull'],
+  ['SUB','WOD 3','Aerobic mixed modal'],
+  ['NED','REST','Recovery']
+];
+const PHASE=['BASE','BASE','BUILD','BUILD','DELOAD','INTENSIFICATION','INTENSIFICATION','TEST'];
+let S={start:'2026-10-05',logs:[],rm:{},mods:{},prs:0};
+try{
+  const raw=localStorage.getItem('kanc_training');
+  if(raw){const old=JSON.parse(raw);if(old&&typeof old==='object')S=Object.assign(S,old);}
+}catch(e){}
+if(!Array.isArray(S.logs))S.logs=[];
+if(!S.rm||typeof S.rm!=='object')S.rm={};
+if(!S.mods||typeof S.mods!=='object')S.mods={};
+if(!S.start||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(S.start))S.start='2026-10-05';
+let sel=new Date();
+let timer=null;
+const $=id=>document.getElementById(id);
+const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+const dayDate=s=>new Date(s+'T12:00');
+function save(){try{localStorage.setItem('kanc_training',JSON.stringify(S));}catch(e){}}
+function info(s){
+  const days=Math.floor((dayDate(s)-dayDate(S.start))/86400000);
+  return {w:Math.max(1,Math.min(8,Math.floor(days/7)+1)),dow:(dayDate(s).getDay()+6)%7};
+}
+function getWod(w,d){
+  if(w===8)return ['Benchmark 10 min AMRAP','AMRAP',[['Row','10 cal'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]];
+  if(w>=6){
+    if(d===0)return ['8 min AMRAP','AMRAP',[['Power Snatch','8'],['Burpees','10'],['Box Jump','12']]];
+    if(d===2)return ['For Time - 16 min cap','FOR TIME',[['Run','800 m'],['Thruster','30'],['Pull-up','20'],['Run','400 m']]];
+    return ['30 min EMOM','EMOM',[['Bike','12 cal'],['KB Swing','10'],['Burpees','8'],['Rest','—']]];
+  }
+  if(w>=3){
+    if(d===0)return ['10 min AMRAP','AMRAP',[['Bike','12 cal'],['Toes-to-Bar','10'],['DB Thruster','10'],['Burpees','8']]];
+    if(d===2)return ['EMOM 18 min','EMOM',[['Row','10 cal'],['Clean & Jerk','6'],['Pull-up','10']]];
+    return ['30 min Mixed','MIXED',[['Row','500 m'],['Run','400 m'],['Wall Ball','20'],['KB Swing','15']]];
+  }
+  if(d===0)return ['12 min AMRAP','AMRAP',[['Row','10 cal'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]];
+  if(d===2)return ['5 Rounds','ROUNDS',[['Row','250 m'],['Power Clean','6'],['Box Jump','8'],['Push-ups','10']]];
+  return ['24 min AMRAP','AMRAP',[['Run','400 m'],['Wall Ball','15'],['DB Snatch','12'],['Sit-up','10']]];
+}
+const SUB={
+  'Row':[['Run','400 m'],['Bike','12 cal'],['SkiErg','10 cal']],
+  'Run':[['Bike','12 cal'],['Row','500 m'],['SkiErg','10 cal']],
+  'Bike':[['Run','300 m'],['Row','400 m'],['SkiErg','10 cal']],
+  'Pull-up':[['Ring Row','10'],['Lat Pulldown','10']],
+  'Burpees':[['Bike','10 cal'],['Run','100 m']],
+  'Wall Ball':[['Goblet Squat','15'],['DB Thruster','10']]
+};
+function strength(d,w){
+  const squat=w===1?'4×6':w===2?'4×6':w===3?'5×5':w===4?'5×4':w===5?'3×5':w===6?'5×4':w===7?'4×3':'3×3';
+  const dead=w===1?'4×5':w===2?'4×5':w===3?'5×4':w===4?'5×4':w===5?'3×4':w===6?'5×3':w===7?'4×3':'3×2';
+  if(d===1)return [['Back Squat',squat],['Bench Press','4×6'],['Bulgarian Split Squat','3×8'],['Chest-supported Row','3×10']];
+  return [['Deadlift',dead],['Strict Press','4×6'],['Pull-up','4×6–10'],['Romanian Deadlift','3×8']];
+}
+function render(s){
+  sel=dayDate(s);
+  const q=info(iso(sel)),w=q.w,dow=q.dow,x=DAYS[dow];
+  $('title').textContent='Danas · '+sel.toLocaleDateString('hr-HR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  $('phase').textContent=PHASE[w-1];
+  $('date').textContent=sel.toLocaleDateString('hr-HR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  $('week').textContent='Tjedan '+w+' · '+PHASE[w-1];
+  $('type').textContent=x[1];
+  $('session').textContent=x[0]+' · '+x[1];
+  $('focus').textContent=x[2];
+  $('days').innerHTML=DAYS.map((z,i)=>'<button class="'+(i===dow?'sel':'')+'" data-d="'+i+'">'+z[0]+'<br><small>'+z[1]+'</small></button>').join('');
+  document.querySelectorAll('[data-d]').forEach(btn=>btn.onclick=()=>{const n=new Date(sel);n.setDate(n.getDate()+(Number(btn.dataset.d)-dow));render(iso(n));});
+  if(x[1]==='REST'){
+    $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>';
+    $('start').style.display='none';
+  }else if(x[1].startsWith('STRENGTH')){
+    $('body').innerHTML=strength(dow,w).map(e=>'<div class="ex"><b>'+e[0]+'</b><div class="muted">'+e[1]+'</div></div>').join('');
+    $('start').style.display='block';
+  }else{
+    const z=getWod(w,dow);
+    $('body').innerHTML='<div class="ex"><b>'+z[0]+'</b><div style="margin-top:7px">'+z[2].map(m=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<span class="pill" style="display:inline-block;margin:2px">'+v[0]+' · '+v[1]+'</span>';}).join('')+'</div><p class="muted">Originalni plan ostaje spremljen.</p></div>';
+    $('start').style.display='block';
+  }
+  drawCalendar();
+}
+function drawCalendar(){
+  const y=sel.getFullYear(),m=sel.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),lead=(first.getDay()+6)%7;
+  let h='<div style="grid-column:1/-1;text-align:center;font-weight:800;padding:7px">'+sel.toLocaleDateString('hr-HR',{month:'long',year:'numeric'})+'</div>';
+  for(let i=0;i<lead;i++)h+='<div style="border:0"></div>';
+  for(let n=1;n<=last.getDate();n++){
+    const s=iso(new Date(y,m,n)),done=S.logs.some(l=>l.date===s);
+    h+='<div class="'+(s===iso(sel)?'today ':'')+(done?'done':'')+'" data-date="'+s+'">'+n+(done?' ✓':'')+'</div>';
+  }
+  $('cal').innerHTML=h;
+  document.querySelectorAll('[data-date]').forEach(x=>x.onclick=()=>render(x.dataset.date));
+}
+function modify(){
+  const q=info(iso(sel)),z=getWod(q.w,q.dow);
+  $('sheet').innerHTML='<div class="row"><h2>🔄 Promijeni trening</h2><button id="close">✕</button></div><p class="muted">Originalni plan se ne mijenja.</p>'+
+    z[2].map(m=>'<div class="card"><b>'+m[0]+'</b><div class="muted">Plan: '+m[1]+'</div><select data-mod="'+m[0]+'"><option value="">Original · '+m[1]+'</option>'+((SUB[m[0]]||[]).map(o=>'<option value="'+o[0]+'|'+o[1]+'">'+o[0]+' · '+o[1]+'</option>').join(''))+'</select></div>').join('')+
+    '<button class="primary" id="apply" style="width:100%">Primijeni</button>';
+  $('modal').classList.remove('hidden');
+  $('close').onclick=()=>$('modal').classList.add('hidden');
+  $('apply').onclick=()=>{document.querySelectorAll('[data-mod]').forEach(e=>{if(e.value)S.mods[z[0]+'|'+e.dataset.mod]=e.value.split('|');});save();$('modal').classList.add('hidden');render(iso(sel));};
+}
+function startWorkout(){
+  const q=info(iso(sel)),x=DAYS[q.dow];
+  $('active').classList.remove('hidden');
+  $('activeTitle').textContent=x[1];
+  if(x[1].startsWith('STRENGTH')){
+    const ex=strength(q.dow,q.w);
+    $('activeBody').innerHTML=ex.map(e=>'<div class="ex"><b>'+e[0]+'</b><div class="muted">Plan: '+e[1]+'</div>'+[1,2,3,4].map(n=>'<div class="set"><span>'+n+'</span><input data-w type="number" placeholder="kg"><input data-r type="number" placeholder="reps"><input data-rpe type="number" step=".5" placeholder="RPE"><input data-ok type="checkbox"></div>').join('')+'</div>').join('');
+  }else{
+    const z=getWod(q.w,q.dow);
+    $('activeBody').innerHTML='<div class="card"><b>'+z[1]+'</b><h3>'+z[0]+'</h3><p>'+z[2].map(m=>m[0]+' · '+m[1]).join(' · ')+'</p></div>';
+  }
+}
+function saveWorkout(){
+  const q=info(iso(sel)),x=DAYS[q.dow];
+  const sets=[...document.querySelectorAll('[data-w]')].map((e,i)=>({kg:+e.value||null,reps:+document.querySelectorAll('[data-r]')[i].value||null,rpe:+document.querySelectorAll('[data-rpe]')[i].value||null,done:document.querySelectorAll('[data-ok]')[i].checked}));
+  S.logs=S.logs.filter(l=>l.date!==iso(sel));
+  S.logs.push({date:iso(sel),week:q.w,type:x[1],session:x[0],rpe:+$('rpe').value||null,mins:+$('mins').value||null,result:$('result').value,note:$('note').value,sets:sets});
+  save();$('active').classList.add('hidden');toast('✓ Trening spremljen');renderLog();renderProgress();
+}
+function renderLog(){$('logs').innerHTML=S.logs.length?S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="ex"><b>'+dayDate(l.date).toLocaleDateString('hr-HR')+'</b> · '+l.type+'<br><span class="muted">'+l.session+' · '+(l.result||'bez scorea')+' · RPE '+(l.rpe||'—')+'</span></div>').join(''):'<p class="muted">Nema treninga.</p>';}
+function renderProgress(){$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';}
+function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),1800);}
+function setupNav(){
+  document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+    ['today','program','log','progress','settings'].forEach(id=>$(id).classList.toggle('hidden',id!==btn.dataset.p));
+    if(btn.dataset.p==='program')$('weeks').innerHTML=PHASE.map((p,i)=>'<div class="card"><b>W'+(i+1)+' · '+p+'</b><p class="muted">PON WOD 1 · UTO Strength A · SRI WOD 2 · ČET Rest · PET Strength B · SUB WOD 3 · NED Rest</p></div>').join('');
+    if(btn.dataset.p==='log')renderLog();
+    if(btn.dataset.p==='progress')renderProgress();
+    if(btn.dataset.p==='settings'){$('startDate').value=S.start;['squat','deadlift','bench','press'].forEach(k=>$('rm_'+k).value=S.rm[k]||'');}
+  });
+}
+$('start').onclick=startWorkout;
+$('modify').onclick=modify;
+$('finish').onclick=()=>$('active').classList.add('hidden');
+document.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>{
+  clearInterval(timer);let end=Date.now()+Number(b.dataset.rest)*1000;
+  timer=setInterval(()=>{const left=Math.max(0,end-Date.now());$('timer').textContent=new Date(left).toISOString().slice(14,19);if(!left){clearInterval(timer);toast('⏱ Odmor gotov');}},250);
+});
+$('save').onclick=saveWorkout;
+$('clear').onclick=()=>{S.logs=[];save();renderLog();renderProgress();};
+$('startDate').onchange=e=>{S.start=e.target.value;save();render(iso(sel));};
+$('saveRM').onclick=()=>{['squat','deadlift','bench','press'].forEach(k=>S.rm[k]=+$('rm_'+k).value||null);save();toast('1RM spremljen');render(iso(sel));};
+$('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='kanc-training-backup.json';a.click();};
+$('imp').onclick=()=>$('file').click();
+$('file').onchange=e=>{const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render(iso(sel));toast('Backup uvezen');}catch(err){toast('Neispravan backup');}};r.readAsText(e.target.files[0]);};
+setupNav();
+render(iso(sel));
 </script></body></html>
