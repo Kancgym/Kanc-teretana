@@ -710,6 +710,22 @@ $('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createOb
 $('imp').onclick=()=>$('file').click();
 $('file').onchange=e=>{const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render(iso(sel));toast('Backup uvezen');}catch(err){toast('Neispravan backup');}};r.readAsText(e.target.files[0]);};
 document.getElementById('openGoals').onclick=()=>document.querySelector('.nav button[data-p="goals"]').click();
+document.getElementById('saveGoals').onclick=()=>{
+  const d=+document.getElementById('goalRunDistanceInput').value||0,
+        ct=document.getElementById('goalRunCurrentInput').value.trim(),
+        tt=document.getElementById('goalRunTargetInput').value.trim();
+  if(d>0&&paceToSec(ct)&&paceToSec(tt)){S.goals.runDistance=d;S.goals.runCurrentTime=ct;S.goals.runTargetTime=tt;}
+  const st=S.goals.strengthTargets||{};
+  st.squat=+document.getElementById('goalSquatTargetInput').value||null;
+  st.deadlift=+document.getElementById('goalDeadliftTargetInput').value||null;
+  st.bench=+document.getElementById('goalBenchTargetInput').value||null;
+  st.press=+document.getElementById('goalPressTargetInput').value||null;
+  st.pull=+document.getElementById('goalPullTargetInput').value||null;
+  st.kb=+document.getElementById('goalKBInput').value||null;
+  S.goals.strengthTargets=st;
+  S.goals.squatTarget=st.squat;S.goals.pullTarget=st.pull;S.goals.kbSwing=st.kb;
+  save();renderGoals();render(iso(sel));toast('✓ Moji ciljevi spremljeni');
+};
 ['profileHeight','profileWeight'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',()=>{const b=bmiValue();const out=document.getElementById('profileBMI'),lab=document.getElementById('profileBMILabel');if(out)out.textContent=b?b.toFixed(1):'—';if(lab)lab.textContent=bmiLabel(b);});});document.getElementById('saveProfile').onclick=()=>{S.profile={name:document.getElementById('profileName').value.trim(),sex:document.getElementById('profileSex').value,height:+document.getElementById('profileHeight').value||null,weight:+document.getElementById('profileWeight').value||null,bodyfat:+document.getElementById('profileBFInput').value||null};save();renderProfileData();toast('✓ Profil spremljen');};
 document.getElementById('scheduleTest').onclick=()=>{const date=document.getElementById('testDate').value;if(!date){toast('Odaberi datum testiranja');return;}S.testSchedule[date]={type:'1RM'};save();toast('✓ 1RM test zakazan za '+date);render(iso(sel));};
 document.getElementById('calcTest').onclick=()=>{
@@ -736,6 +752,18 @@ document.getElementById('calcReadiness').onclick=()=>{
   document.getElementById('readinessResult').innerHTML='<div class="card"><b>'+score+' / 100 · '+ri.label+'</b><p class="muted">'+ri.note+'</p></div>';
   render(iso(sel));
 };
+function hydrateSettings(){
+  const d=iso(sel),r=S.readiness?.[d]||{};
+  const vals={
+    startDate:S.start||'',
+    rm_squat:S.rm?.squat||'',rm_deadlift:S.rm?.deadlift||'',rm_bench:S.rm?.bench||'',rm_press:S.rm?.press||'',
+    readinessBB:r.bb||'',readinessSleep:r.sleep||'',readinessHRV:r.hrv||'',readinessStatus:r.status||'Balanced',readinessFeel:r.feel||3,
+    testDate:Object.keys(S.testSchedule||{}).sort().find(x=>x>=d)||''
+  };
+  Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});
+  if(typeof renderProfileData==='function')renderProfileData();
+}
+hydrateSettings();
 render(iso(sel));
 renderGoals();
 renderProfile();
