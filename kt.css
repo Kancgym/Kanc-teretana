@@ -186,3 +186,11 @@ input:focus,textarea:focus,select:focus{
   #today>#active{grid-column:1/-1}
   #today>.card:has(#rpe){grid-column:1/-1}
 }
+
+/* Athlete-selected goals */
+.goal-edit-grid{display:grid;gap:14px}.goal-edit-group{padding:14px;border:1px solid #143852;border-radius:15px;background:rgba(3,13,23,.72)}.goal-edit-group>.eyebrow{margin-bottom:9px;color:#6ebbe0}.goal-edit-group .grid2{gap:10px}.goal-edit-group label{display:block;color:#9db5c9;font-size:11px;font-weight:650}.goal-edit-group input{margin-top:5px;width:100%}
+#goalCards:empty{min-height:0}
+#goalCards .goal-card .goal-meta span:last-child{color:#22d9ff;font-weight:850;letter-spacing:.08em}
+@media(min-width:901px){.goal-edit-grid{grid-template-columns:1.1fr 1.7fr 1fr}}
+@media(max-width:900px){.goal-edit-grid{grid-template-columns:1fr}.goal-edit-group{padding:12px}.goal-edit-group .grid2{grid-template-columns:1fr 1fr}.goal-edit-group label{font-size:10px}}
+@media(max-width:420px){.goal-edit-group .grid2{grid-template-columns:1fr}}
