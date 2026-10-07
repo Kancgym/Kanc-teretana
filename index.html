@@ -207,7 +207,7 @@ function bmiValue(){const h=Number(S.profile?.height)/100,w=Number(S.profile?.we
 function bmiLabel(b){if(!b)return '—';if(b<18.5)return 'Underweight';if(b<25)return 'Healthy range';if(b<30)return 'Overweight';return 'High BMI';}
 function profileSummary(){const p=S.profile||{},bits=[];if(p.sex)bits.push(p.sex==='M'?'Muški':p.sex==='F'?'Ženski':'Drugo');if(p.height)bits.push(p.height+' cm');if(p.weight)bits.push(p.weight+' kg');return bits.join(' · ')||'Unesi osnovne podatke';}
 function latestPullupReps(){for(let i=(S.logs||[]).length-1;i>=0;i--){for(const s of (S.logs[i].sets||[])){if(s.exercise==='Pull-up'&&s.reps)return Number(s.reps);}}return null;}
-function renderGoals(){const g=S.goals||{},run=goalRunTargetPace(),d=Number(g.runDistance)||5,label=document.getElementById('goalRunDistanceLabel');if(label)label.textContent=d+' KM';const cur=document.getElementById('goalRunCurrent'),tar=document.getElementById('goalRunTarget');if(cur)cur.textContent=run?secToClock(run.currentTime):'—';if(tar)tar.textContent=run?secToClock(run.targetTime):'—';const bar=document.getElementById('goalRunBar');if(bar)bar.style.width=(run?Math.min(100,(run.targetTime/run.currentTime)*100):0)+'%';const rp=document.getElementById('goalRunPace');if(rp)rp.textContent=run?'Training pace · '+secToPace(runTrainingPace())+'/km':'Unesi distancu i vremena';const rprog=document.getElementById('goalRunProgress');if(rprog)rprog.textContent=run?'Cilj pace · '+secToPace(run.target)+'/km':'—';const sq=Number(S.rm?.squat)||0,st=Number(g.squatTarget)||0;const qv=document.getElementById('goalSquatCurrent');if(qv)qv.textContent=sq?sq+' kg':'—';const qt=document.getElementById('goalSquatTarget');if(qt)qt.textContent=st?st+' kg':'—';const qb=document.getElementById('goalSquatBar');if(qb)qb.style.width=(sq&&st?Math.min(100,sq/st*100):0)+'%';const pc=latestPullupReps(),pt=Number(g.pullTarget)||0;const pcEl=document.getElementById('goalPullCurrent');if(pcEl)pcEl.textContent=pc?pc+' reps':'—';const ptEl=document.getElementById('goalPullTarget');if(ptEl)ptEl.textContent=pt?pt+' reps':'—';const pb=document.getElementById('goalPullBar');if(pb)pb.style.width=(pc&&pt?Math.min(100,pc/pt*100):0)+'%';const a=adaptiveRunDecision(iso(sel)),ex=document.getElementById('runGoalExplanation');if(ex){if(run){ex.innerHTML='<div class="coach-grid"><div><span class="muted">DISTANCE</span><strong>'+run.distance+' km</strong></div><div><span class="muted">CURRENT</span><strong>'+secToPace(run.current)+'/km</strong></div><div><span class="muted">TARGET</span><strong>'+secToPace(run.target)+'/km</strong></div><div><span class="muted">TRAINING</span><strong>'+secToPace(runTrainingPace())+'/km</strong></div></div><p class="muted" style="margin-top:10px">Danas: <b>'+a.label+'</b> — '+a.note+'</p>';}else ex.innerHTML='<p class="muted">Unesi trkačku distancu i trenutno/ciljano vrijeme.</p>';}const i1=document.getElementById('goalRunDistanceInput'),i2=document.getElementById('goalRunCurrentInput'),i3=document.getElementById('goalRunTargetInput');if(i1)i1.value=g.runDistance||'';if(i2)i2.value=g.runCurrentTime||'';if(i3)i3.value=g.runTargetTime||'';const sk=document.getElementById('goalSquatTargetInput');if(sk)sk.value=g.squatTarget||'';const pk=document.getElementById('goalPullTargetInput');if(pk)pk.value=g.pullTarget||'';const kb=document.getElementById('goalKBInput');if(kb)kb.value=g.kbSwing||'';}
+function renderGoals(){const g=S.goals||{},run=goalRunTargetPace(),d=Number(g.runDistance)||5,label=document.getElementById('goalRunDistanceLabel');if(label)label.textContent=d+' KM';const cur=document.getElementById('goalRunCurrent'),tar=document.getElementById('goalRunTarget');if(cur)cur.textContent=run?secToClock(run.currentTime):'—';if(tar)tar.textContent=run?secToClock(run.targetTime):'—';const bar=document.getElementById('goalRunBar');if(bar)bar.style.width=(run?Math.min(100,(run.targetTime/run.currentTime)*100):0)+'%';const rp=document.getElementById('goalRunPace');if(rp)rp.textContent=run?'Training pace · '+secToPace(runTrainingPace())+'/km':'Unesi distancu i vremena';const rprog=document.getElementById('goalRunProgress');if(rprog)rprog.textContent=run?'Cilj pace · '+secToPace(run.target)+'/km':'—';const mini=document.getElementById('todayGoal5k'),miniMeta=document.getElementById('todayGoal5kMeta');if(mini)mini.textContent=run?(run.distance+' km'):'—';if(miniMeta)miniMeta.textContent=run?(secToClock(run.currentTime)+' → '+secToClock(run.targetTime)):'set goal';const sq=Number(S.rm?.squat)||0,st=Number(g.squatTarget)||0;const qv=document.getElementById('goalSquatCurrent');if(qv)qv.textContent=sq?sq+' kg':'—';const qt=document.getElementById('goalSquatTarget');if(qt)qt.textContent=st?st+' kg':'—';const qb=document.getElementById('goalSquatBar');if(qb)qb.style.width=(sq&&st?Math.min(100,sq/st*100):0)+'%';const pc=latestPullupReps(),pt=Number(g.pullTarget)||0;const pcEl=document.getElementById('goalPullCurrent');if(pcEl)pcEl.textContent=pc?pc+' reps':'—';const ptEl=document.getElementById('goalPullTarget');if(ptEl)ptEl.textContent=pt?pt+' reps':'—';const pb=document.getElementById('goalPullBar');if(pb)pb.style.width=(pc&&pt?Math.min(100,pc/pt*100):0)+'%';const a=adaptiveRunDecision(iso(sel)),ex=document.getElementById('runGoalExplanation');if(ex){if(run){ex.innerHTML='<div class="coach-grid"><div><span class="muted">DISTANCE</span><strong>'+run.distance+' km</strong></div><div><span class="muted">CURRENT</span><strong>'+secToPace(run.current)+'/km</strong></div><div><span class="muted">TARGET</span><strong>'+secToPace(run.target)+'/km</strong></div><div><span class="muted">TRAINING</span><strong>'+secToPace(runTrainingPace())+'/km</strong></div></div><p class="muted" style="margin-top:10px">Danas: <b>'+a.label+'</b> — '+a.note+'</p>';}else ex.innerHTML='<p class="muted">Unesi trkačku distancu i trenutno/ciljano vrijeme.</p>';}const i1=document.getElementById('goalRunDistanceInput'),i2=document.getElementById('goalRunCurrentInput'),i3=document.getElementById('goalRunTargetInput');if(i1)i1.value=g.runDistance||'';if(i2)i2.value=g.runCurrentTime||'';if(i3)i3.value=g.runTargetTime||'';const sk=document.getElementById('goalSquatTargetInput');if(sk)sk.value=g.squatTarget||'';const pk=document.getElementById('goalPullTargetInput');if(pk)pk.value=g.pullTarget||'';const kb=document.getElementById('goalKBInput');if(kb)kb.value=g.kbSwing||'';}
 function renderProfileData(){const p=S.profile||{},b=bmiValue();const vals={profileName:p.name||'',profileSex:p.sex||'',profileHeight:p.height||'',profileWeight:p.weight||'',profileBFInput:p.bodyfat||''};Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});const n=document.getElementById('profileNameLabel');if(n)n.textContent=p.name||'Moj profil';const sm=document.getElementById('profileSummary');if(sm)sm.textContent=profileSummary();const bmi=document.getElementById('profileBMI');if(bmi)bmi.textContent=b?b.toFixed(1):'—';const bl=document.getElementById('profileBMILabel');if(bl)bl.textContent=bmiLabel(b);const bf=document.getElementById('profileBF');if(bf)bf.textContent=p.bodyfat?p.bodyfat+'%':'—';const ss=document.getElementById('profileSessionsMetric');if(ss)ss.textContent=(S.logs||[]).length;}
 function coachRecommendation(q){const run=goalRunTargetPace(),ri=readinessImpact(),f=fatigueStatus(),tl=trainingLoadStatus(),z=activeWod(q.w,q.dow,iso(sel));if(q.dow===6||q.dow===3)return {title:'Recovery is part of the plan',body:'Danas nema potrebe za dodatnim volumenom. Mobility + lagano kretanje su dovoljni.'};let body='';if(run)body+='Running target: '+secToPace(runTrainingPace())+'/km na intervalima. ';if(S.goals?.kbSwing)body+='KB Swing: '+S.goals.kbSwing+' kg kao početna radna težina. ';body+=ri.note+' ';if(f.level!=='normal')body+=f.note;else if(tl.level==='high')body+='Training load je visok — drži kvalitetu, ne dodaj volumen.';else body+='Drži tehniku i završni RPE prema planu.';return {title:z[0]+' · '+z[1],body};}
 function renderCoach(){const q=info(iso(sel)),c=coachRecommendation(q),a=adaptiveRunDecision(iso(sel)),t=document.getElementById('coachTitle'),b=document.getElementById('coachBody');if(t)t.textContent=c.title;if(b)b.innerHTML='<p>'+c.body+'</p><p class="muted"><b>RUNNING:</b> '+a.label+' — '+a.note+'</p>';}
@@ -373,6 +373,7 @@ function autoregulation(ex,w){
   const f=fatigueStatus();
   if(w===5)return {status:'deload',label:'DELOAD',note:'Planirani deload: smanji volumen i intenzitet.'};
   if(f.level==='high')return {status:'fatigue',label:f.label,note:f.note};
+  if(f.level==='moderate')return {status:'caution',label:f.label,note:f.note};
   return {status:'normal',label:f.label,note:f.note};
 }
 function rmForExercise(ex){
@@ -384,13 +385,14 @@ function recommendation(ex,w){
   if(!base)return 0;
   const ar=autoregulation(ex,w);
   let out=base;
-  if(ar.status==='deload') out=round25(base*0.92);
+  if(ar.status==='deload')out=round25(base*.92);
+  if(ar.status==='fatigue')out=round25(base*.90);
+  if(ar.status==='caution')out=round25(base*.95);
   const prev=lastExercise(ex);
-  if(prev && ar.status==='normal'){
-    const rs=prev.map(s=>Number(s.rpe)).filter(Boolean);
-    const avg=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null;
-    if(avg!==null && avg<=7.5)out+=2.5;
-    if(avg!==null && avg>8.5)out-=2.5;
+  if(prev){
+    const rs=prev.map(s=>Number(s.rpe)).filter(Boolean),avg=rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null;
+    if(avg!==null&&avg<=7.5&&ar.status==='normal')out+=2.5;
+    if(avg!==null&&avg>8.5)out-=2.5;
   }
   return Math.max(0,round25(out));
 }
@@ -401,11 +403,18 @@ function planLabel(ex,w){
   const tag=ar.status==='deload'?' · DELOAD':ar.status==='fatigue'?' · ⚠️ UMOR':'';
   return ' · predloženo '+v+' kg'+tag;
 }
+function adaptiveStrengthPrescription(p){
+  const f=fatigueStatus(),m=String(p).match(/^(\d+)×(.+)$/);
+  if(!m)return p;
+  const sets=Number(m[1]);
+  if(f.level==='high')return Math.max(1,sets-1)+'×'+m[2];
+  return p;
+}
 function strength(d,w){
   const squat=w===1?'4×6':w===2?'4×6':w===3?'5×5':w===4?'5×4':w===5?'3×5':w===6?'5×4':w===7?'4×3':'3×3';
   const dead=w===1?'4×5':w===2?'4×5':w===3?'5×4':w===4?'5×4':w===5?'3×4':w===6?'5×3':w===7?'4×3':'3×2';
-  if(d===1)return [['Back Squat',squat],['Bench Press','4×6'],['Bulgarian Split Squat','3×8'],['Chest-supported Row','3×10']];
-  return [['Deadlift',dead],['Strict Press','4×6'],['Pull-up','4×6–10'],['Romanian Deadlift','3×8']];
+  if(d===1)return [['Back Squat',adaptiveStrengthPrescription(squat)],['Bench Press',adaptiveStrengthPrescription('4×6')],['Bulgarian Split Squat',adaptiveStrengthPrescription('3×8')],['Chest-supported Row',adaptiveStrengthPrescription('3×10')]];
+  return [['Deadlift',adaptiveStrengthPrescription(dead)],['Strict Press',adaptiveStrengthPrescription('4×6')],['Pull-up',adaptiveStrengthPrescription('4×6–10')],['Romanian Deadlift',adaptiveStrengthPrescription('3×8')]];
 }
 function render(s){
   sel=dayDate(s);
