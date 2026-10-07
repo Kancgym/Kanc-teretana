@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Kanc Training</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#f5f5f5;background:#0d0d0d}
+*{box-sizing:border-box}body{margin:0;background:#0d0d0d}main{max-width:720px;margin:auto;padding:20px 16px 90px}
+header{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}
+h1,h2,h3,p{margin:0}h1{font-size:28px}h2{font-size:20px}.muted{color:#9d9d9d;font-size:13px}
+.card{background:#171717;border:1px solid #2b2b2b;border-radius:18px;padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px}
+button,input,textarea{font:inherit}button{border:1px solid #333;background:#202020;color:#fff;border-radius:12px;padding:12px;cursor:pointer}.active{background:#fff;color:#111}
+input,textarea{width:100%;background:#0f0f0f;color:#fff;border:1px solid #333;border-radius:10px;padding:11px;margin-top:5px}
+label{font-size:12px;color:#aaa}.row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.exercise{padding:12px 0;border-top:1px solid #292929}.exercise:first-child{border-top:0}
+.save{width:100%;margin-top:10px;background:#fff;color:#111;font-weight:700}
+.log{font-size:14px;padding:9px 0;border-bottom:1px solid #292929}
+.progress{height:8px;background:#292929;border-radius:20px;overflow:hidden}.bar{height:100%;background:#fff;width:0}
+.small{font-size:12px}.hidden{display:none}
+@media(max-width:430px){main{padding:16px 12px 80px}.nav button{padding:10px 4px;font-size:12px}.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div><div class="muted">KANC TRAINING</div><h1>Danasnji trening</h1><p class="muted">Tjedan 1 · Strength A</p></div>
+<div style="text-align:right"><b>68'</b><div class="muted">RPE 7–8</div></div>
+</header>
+
+<nav class="nav">
+<button class="tab active" data-tab="today">Danas</button>
+<button class="tab" data-tab="program">Program</button>
+<button class="tab" data-tab="log">Logbook</button>
+<button class="tab" data-tab="progress">Progress</button>
+</nav>
+
+<section id="today">
+<div class="card">
+<div class="row"><div><span class="muted">01 · WARM-UP</span><h2>Priprema</h2></div><b>10'</b></div>
+<div id="warm" style="margin-top:10px">
+<label><input type="checkbox"> 3' Bike</label><br>
+<label><input type="checkbox"> Mobilnost gležnja + T-spine</label><br>
+<label><input type="checkbox"> Aktivacija gluteusa</label><br>
+<label><input type="checkbox"> Pripremne serije čučnja</label>
+</div>
+</div>
+
+<div class="card">
+<div class="row"><div><span class="muted">02 · STRENGTH</span><h2>Back Squat</h2><p class="muted">4 × 6 · 72.5% · cilj RPE 7</p></div><b>20'</b></div>
+<div class="grid" style="margin-top:12px">
+<label>kg<input id="kg" type="number" value="110" min="0" step="0.5"></label>
+<label>reps<input id="reps" type="number" value="6" min="0"></label>
+<label>RPE<input id="rpe" type="number" value="7" min="1" max="10" step="0.5"></label>
+</div>
+<button class="save" id="saveSet">＋ Spremi seriju</button>
+<div id="sets"></div>
+</div>
+
+<div class="card">
+<span class="muted">03 · ACCESSORY</span><h2>Bench Press</h2><p class="muted">4 × 6 · 70% · 12'</p>
+</div>
+
+<div class="card">
+<div class="row"><div><span class="muted">04 · METCON</span><h2>12' AMRAP</h2></div><b>RPE 8</b></div>
+<p style="margin-top:7px">10 cal Row · 10 Burpees · 12 KB Swings · 8 Pull-ups</p>
+<div class="grid" style="margin-top:12px">
+<label>Rounds<input id="rounds" type="number" min="0"></label>
+<label>Extra reps<input id="extra" type="number" min="0"></label>
+<label>Session RPE<input id="sessionRpe" type="number" min="1" max="10" step=".5"></label>
+</div>
+</div>
+
+<div class="card">
+<span class="muted">05 · BILJEŠKA</span>
+<textarea id="note" rows="3" placeholder="Kako si se osjećao?"></textarea>
+<button class="save" id="finish">Završi trening</button>
+</div>
+</section>
+
+<section id="program" class="hidden">
+<div class="card"><span class="muted">8-TJEDNI PLAN</span><h2>Periodizacija</h2>
+<p style="margin-top:10px">W1–2 Base · W3–4 Build · W5 Deload · W6–7 Intensification · W8 Test</p></div>
+<div class="card"><h3>Tjedan 1</h3><p class="muted">PON WOD 1 · UTO Strength A · SRI WOD 2 · PET Strength B · SUB WOD 3</p></div>
+<div class="card"><h3>Automatika</h3><p class="muted">Opterećenja i progresiju ćemo vezati uz 1RM, RPE i ostvarene rezultate.</p></div>
+</section>
+
+<section id="log" class="hidden">
+<div class="card"><h2>Logbook</h2><div id="logs"><p class="muted">Još nema spremljenih treninga.</p></div></div>
+</section>
+
+<section id="progress" class="hidden">
+<div class="card"><h2>Progress</h2><div class="row"><span>Back Squat</span><b id="best">—</b></div><div class="progress" style="margin-top:10px"><div class="bar" id="bar"></div></div></div>
+<div class="card"><h3>Sljedeća faza</h3><p class="muted">Nakon što upišemo početne 1RM vrijednosti, aplikacija može automatski računati radne serije.</p></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let sets=JSON.parse(localStorage.getItem('kanc_sets')||'[]');
+let logs=JSON.parse(localStorage.getItem('kanc_logs')||'[]');
+function renderSets(){
+ $('sets').innerHTML=sets.map((s,i)=>`<div class="log"><div class="row"><span>Serija ${i+1}</span><b>${s.kg} kg × ${s.reps} · RPE ${s.rpe}</b></div></div>`).join('');
+}
+function renderLogs(){
+ $('logs').innerHTML=logs.length?logs.slice().reverse().map(x=>`<div class="log"><b>${x.date}</b><br>${x.squat||'—'} · WOD ${x.wod||'—'} · Session RPE ${x.rpe||'—'}</div>`).join(''):'<p class="muted">Još nema spremljenih treninga.</p>';
+}
+$('saveSet').onclick=()=>{sets.push({kg:+$('kg').value,reps:+$('reps').value,rpe:+$('rpe').value});localStorage.setItem('kanc_sets',JSON.stringify(sets));renderSets()};
+$('finish').onclick=()=>{
+ const best=sets.length?Math.max(...sets.map(x=>x.kg)):0;
+ const wod=$('rounds').value?$('rounds').value+'.'+($('extra').value||0):'—';
+ logs.push({date:new Date().toLocaleDateString('hr-HR'),squat:best?best+' kg':'—',wod,rpe:$('sessionRpe').value||'—'});
+ localStorage.setItem('kanc_logs',JSON.stringify(logs));sets=[];localStorage.setItem('kanc_sets','[]');renderSets();renderLogs();alert('Trening spremljen.');
+};
+document.querySelectorAll('.tab').forEach(btn=>btn.onclick=()=>{
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
+ ['today','program','log','progress'].forEach(id=>$(id).classList.toggle('hidden',id!==btn.dataset.tab));
+ renderLogs();
+});
+renderSets();renderLogs();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
