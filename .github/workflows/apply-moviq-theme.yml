@@ -9,18 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inject MOVIQ stylesheet
+      - name: Inject MOVIQ styles
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path("index.html")
           s=p.read_text()
-          tag='<link rel="stylesheet" href="moviq.css?v=1">'
-          if tag not in s:
-              s=s.replace('</head>', tag+'</head>', 1)
-          # Fix projected 1RM test date comparison without changing training logic.
-          s=s.replace("sel==='2026-10-07'", "iso(sel)==='2026-10-07'")
+          for tag in ['<link rel="stylesheet" href="moviq.css?v=1">','<link rel="stylesheet" href="moviq-mobile.css?v=1">']:
+              if tag not in s:
+                  s=s.replace('</head>',tag+'</head>',1)
           p.write_text(s)
           PY
       - name: Commit theme
@@ -28,5 +26,5 @@ jobs:
           git config user.name "Kancgym"
           git config user.email "338981997+Kancgym@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "Apply MOVIQ dashboard theme"
+          git diff --cached --quiet || git commit -m "Apply mobile-first MOVIQ theme"
           git push
