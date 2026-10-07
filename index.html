@@ -8,7 +8,7 @@
 <div class="card"><div class="eyebrow">REZULTAT</div><div class="grid2"><label>RPE<input id="rpe" type="number" min="1" max="10" step=".5" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Min<input id="mins" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label></div><textarea id="result" placeholder="WOD score / rezultat" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></textarea><textarea id="note" placeholder="Bilješka" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></textarea><button class="primary" id="save" style="width:100%;margin-top:8px">✓ SPREMI TRENING</button></div></section>
 <section id="program" class="hidden"><div id="weeks"></div></section><section id="log" class="hidden"><div class="card"><div class="row"><h2>Logbook</h2><button id="clear">Obriši</button></div><div id="logs"></div></div></section>
 <section id="progress" class="hidden"><div class="grid2"><div class="card"><small>SESSIONS</small><h2 id="ns">0</h2></div><div class="card"><small>WOD</small><h2 id="nw">0</h2></div><div class="card"><small>PR-ovi</small><h2 id="npr">0</h2></div><div class="card"><small>SQUAT 1RM</small><h2 id="sq">—</h2></div></div><div class="card"><b>Program completion</b><p id="completion"></p></div></section>
-<section id="settings" class="hidden"><div class="card"><div class="eyebrow">TESTIRANJE</div><h2>Projektirani 1RM</h2><p class="muted">Zagrij se, dođi do približno 90% očekivanog maksimuma i napravi maksimalan broj tehnički kvalitetnih ponavljanja. Najbolje je ostati u rasponu 2–6 ponavljanja; procjene postaju manje pouzdane s većim brojem ponavljanja.</p><div class="grid2"><select id="testEx" style="width:100%;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"><option value="squat">Back Squat</option><option value="deadlift">Deadlift</option><option value="bench">Bench Press</option><option value="press">Strict Press</option></select><input id="testKg" type="number" inputmode="decimal" placeholder="kg" style="width:100%;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></div><input id="testReps" type="number" min="1" max="10" inputmode="numeric" placeholder="maks. kvalitetnih ponavljanja" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"><button class="primary" id="calcTest" style="width:100%;margin-top:8px">IZRAČUNAJ PROJICIRANI 1RM</button><div id="testResult" style="margin-top:10px"></div></div><div class="card"><div class="eyebrow">PROGRAM</div><h2>Početak</h2><input id="startDate" type="date" style="width:100%;margin-top:6px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></div><div class="card"><div class="eyebrow">1RM</div><div class="grid2"><label>Back Squat<input id="rm_squat" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Deadlift<input id="rm_deadlift" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Bench Press<input id="rm_bench" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Strict Press<input id="rm_press" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label></div><button class="primary" id="saveRM" style="width:100%;margin-top:10px">Spremi 1RM</button></div><div class="card"><b>Podaci</b><p class="muted">Export/import čuva logbook i postavke.</p><button id="export">⬇ Export JSON</button><button id="imp">⬆ Import JSON</button><input id="file" type="file" accept="application/json" class="hidden"></div></section>
+<section id="settings" class="hidden"><div class="card"><div class="eyebrow">DAILY READINESS</div><h3>Garmin Readiness</h3><p class="muted">Unesi samo 3 Garmin podatka i kako se osjećaš. Sustav ih koristi za prilagodbu današnjeg treninga.</p><div class="grid2"><label>Body Battery<input id="readinessBB" type="number" min="0" max="100" placeholder="npr. 76"></label><label>Sleep Score<input id="readinessSleep" type="number" min="0" max="100" placeholder="npr. 87"></label><label>HRV (ms)<input id="readinessHRV" type="number" min="1" placeholder="npr. 59"></label><label>HRV status<select id="readinessStatus"><option>Balanced</option><option>Unbalanced</option><option>Low</option><option>High</option></select></label></div><label>Kako se osjećaš? <span class="muted">1–5</span><input id="readinessFeel" type="number" min="1" max="5" value="3"></label><button class="primary" id="calcReadiness">IZRAČUNAJ READINESS</button><div id="readinessResult"></div></div><div class="card"><div class="eyebrow">TESTIRANJE</div><h2>Projektirani 1RM</h2><p class="muted">Zagrij se, dođi do približno 90% očekivanog maksimuma i napravi maksimalan broj tehnički kvalitetnih ponavljanja. Najbolje je ostati u rasponu 2–6 ponavljanja; procjene postaju manje pouzdane s većim brojem ponavljanja.</p><div class="grid2"><select id="testEx" style="width:100%;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"><option value="squat">Back Squat</option><option value="deadlift">Deadlift</option><option value="bench">Bench Press</option><option value="press">Strict Press</option></select><input id="testKg" type="number" inputmode="decimal" placeholder="kg" style="width:100%;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></div><input id="testReps" type="number" min="1" max="10" inputmode="numeric" placeholder="maks. kvalitetnih ponavljanja" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"><button class="primary" id="calcTest" style="width:100%;margin-top:8px">IZRAČUNAJ PROJICIRANI 1RM</button><div id="testResult" style="margin-top:10px"></div></div><div class="card"><div class="eyebrow">PROGRAM</div><h2>Početak</h2><input id="startDate" type="date" style="width:100%;margin-top:6px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></div><div class="card"><div class="eyebrow">1RM</div><div class="grid2"><label>Back Squat<input id="rm_squat" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Deadlift<input id="rm_deadlift" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Bench Press<input id="rm_bench" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Strict Press<input id="rm_press" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label></div><button class="primary" id="saveRM" style="width:100%;margin-top:10px">Spremi 1RM</button></div><div class="card"><b>Podaci</b><p class="muted">Export/import čuva logbook i postavke.</p><button id="export">⬇ Export JSON</button><button id="imp">⬆ Import JSON</button><input id="file" type="file" accept="application/json" class="hidden"></div></section>
 </main><div id="modal" class="modal hidden"><div class="sheet" id="sheet"></div></div><div id="toast" class="toast hidden"></div>
 <script>
 const DAYS=[
@@ -21,7 +21,7 @@ const DAYS=[
   ['NED','REST','Recovery']
 ];
 const PHASE=['BASE','BASE','BUILD','BUILD','DELOAD','INTENSIFICATION','INTENSIFICATION','TEST'];
-let S={start:'2026-10-05',logs:[],rm:{},mods:{},prs:0};
+let S={start:'2026-10-05',logs:[],rm:{},mods:{},prs:0,readiness:{}};
 try{
   const raw=localStorage.getItem('kanc_training');
   if(raw){const old=JSON.parse(raw);if(old&&typeof old==='object')S=Object.assign(S,old);}
@@ -29,6 +29,7 @@ try{
 if(!Array.isArray(S.logs))S.logs=[];
 if(!S.rm||typeof S.rm!=='object')S.rm={};
 if(!S.mods||typeof S.mods!=='object')S.mods={};
+if(!S.readiness||typeof S.readiness!=='object')S.readiness={};
 if(!S.start||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(S.start))S.start='2026-10-05';
 let sel=new Date();
 let timer=null;
@@ -56,8 +57,10 @@ function wodLoad(ex,reps,w){
   const r=Number(String(reps).match(/\d+/)?.[0]||10);
   const repFactor=r<=5?1:r<=8?.92:r<=10?.86:r<=12?.80:r<=15?.74:.68;
   const f=autoregulation('',w);
+  const ri=readinessImpact();
   const fatigueFactor=f.status==='deload'?.88:f.status==='fatigue'?.90:f.status==='normal'&&fatigueStatus().level==='moderate'?.95:1;
-  let kg=round25(rm*m.pct*repFactor*fatigueFactor);
+  const readinessFactor=ri.factor;
+  let kg=round25(rm*m.pct*repFactor*fatigueFactor*readinessFactor);
   if(ex==='Wall Ball')kg=Math.max(2,Math.min(12,kg));
   return {kg,unit:m.unit,status:f.status};
 }
@@ -122,6 +125,27 @@ function lastExercise(ex){
     if(sets.length)return sets;
   }
   return [];
+}
+function calcReadiness(bb,sleep,hrv,status,feel){
+  if(!bb||!sleep||!hrv)return null;
+  let h=50;
+  if(status==='Balanced')h=85;
+  else if(status==='Unbalanced')h=45;
+  else if(status==='Low')h=30;
+  else if(status==='High')h=90;
+  const subjective={1:45,2:60,3:75,4:90,5:100}[feel||3];
+  const score=Math.round(bb*.35+sleep*.30+h*.20+subjective*.15);
+  return Math.max(0,Math.min(100,score));
+}
+function readinessToday(){
+  return S.readiness[iso(sel)]||null;
+}
+function readinessImpact(){
+  const r=readinessToday();
+  if(!r)return {level:'unknown',label:'READINESS NIJE UNESEN',factor:1,note:'Unesi Body Battery, Sleep Score i HRV prije treninga.'};
+  if(r.score<50)return {level:'red',label:'LOW READINESS',factor:.90,note:'Smanji intenzitet i volumen. Izbjegni maksimalne napore.'};
+  if(r.score<70)return {level:'yellow',label:'MODERATE READINESS',factor:.95,note:'Treniraj, ali autoreguliraj intenzitet prema RPE-u.'};
+  return {level:'green',label:'GOOD READINESS',factor:1,note:'Trening prema planu; koristi RPE za finu korekciju.'};
 }
 function fatigueStatus(){
   const logs=S.logs||[];
@@ -292,5 +316,15 @@ document.getElementById('calcTest').onclick=()=>{
   document.getElementById('testResult').innerHTML='<div class="card"><b>'+names[ex]+'</b><h2>'+z.working+' kg</h2><p>Epley: '+z.epley.toFixed(1)+' kg<br>Brzycki: '+z.brzycki.toFixed(1)+' kg<br>NSCA tablica: '+z.nsca.toFixed(1)+' kg</p><p class="muted">Za programiranje je spremljeno konzervativnih '+z.working+' kg kao radni 1RM.</p></div>';
   render(iso(sel));
 };setupNav();
+document.getElementById('calcReadiness').onclick=()=>{
+  const bb=+document.getElementById('readinessBB').value,sleep=+document.getElementById('readinessSleep').value,hrv=+document.getElementById('readinessHRV').value,status=document.getElementById('readinessStatus').value,feel=+document.getElementById('readinessFeel').value||3;
+  const score=calcReadiness(bb,sleep,hrv,status,feel);
+  if(!score){toast('Unesi Body Battery, Sleep Score i HRV');return;}
+  S.readiness[iso(sel)]={date:iso(sel),bb,sleep,hrv,status,feel,score};
+  save();
+  const ri=readinessImpact();
+  document.getElementById('readinessResult').innerHTML='<div class="card"><b>'+score+' / 100 · '+ri.label+'</b><p class="muted">'+ri.note+'</p></div>';
+  render(iso(sel));
+};
 render(iso(sel));
 </script></body></html>
