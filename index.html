@@ -133,21 +133,35 @@ function info(s){
   return {w:Math.max(1,Math.min(8,Math.floor(days/7)+1)),dow:(dayDate(s).getDay()+6)%7};
 }
 function wodWeeklyNote(w){
-  const p=weeklyLoadProfile(w);
-  const notes=[];
-  if(p.run<2)notes.push('dodaj još aerobnog trčanja');
-  if(p.push>p.pull*1.5)notes.push('više pull rada u idućem WOD-u');
-  if(p.pull>p.push*1.8)notes.push('više push rada u idućem WOD-u');
-  if(p.hinge>3)notes.push('ograniči dodatni hinge volumen zbog opterećenja');
-  if(p.olympic>3)notes.push('kontroliraj Olympic lifting volumen');
+  const p=weeklyLoadProfile(w),notes=[];
+  if(p.run<3)notes.push('aerobni volumen može rasti');
+  if(p.push>p.pull*1.5)notes.push('više pull rada');
+  if(p.pull>p.push*1.8)notes.push('više push rada');
+  if(p.hinge>4)notes.push('ograniči hinge');
+  if(p.squat>5)notes.push('ograniči squat');
+  if(p.olympic>4)notes.push('kontroliraj Olympic volumen');
+  if(p.jump>4)notes.push('kontroliraj skokove');
   return notes.length?notes.join(' · '):'Tjedni balans WOD-a je uredan.';
 }
 function wodIntensityCap(w){
-  const ri=readinessImpact();
+  const ri=readinessImpact(),comp=competitionRecoveryState(iso(sel));
+  if(comp.action==='rest')return 'POST-RACE RECOVERY · RPE 4–5';
+  if(comp.action==='recovery')return 'POST-RACE RECOVERY · RPE 5–6';
+  if(comp.action==='reduce')return 'POST-RACE REDUCED · RPE 6–7';
   if(w===5)return 'DELOAD · RPE 6–7';
   if(ri.level==='red')return 'LOW READINESS · RPE 6–7';
   if(ri.level==='yellow')return 'MODERATE · RPE 7–8';
   return 'NORMAL · RPE 7–9';
+}
+function competitionRecoveryState(date=iso(sel)){
+  const today=dayDate(date);
+  const comps=(S.activities||[]).filter(a=>a.planned===false&&a.type==='Natjecanje'&&a.date<=date).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!comps.length)return {action:'none',days:null,note:''};
+  const last=comps[comps.length-1],days=Math.round((today-dayDate(last.date))/86400000),rpe=Number(last.rpe)||0;
+  if(days<0||days>3||rpe<8)return {action:'none',days,note:''};
+  if(days<=1)return {action:'rest',days,note:'Nakon natjecanja prioritet su oporavak, hidracija, prehrana, san i lagano kretanje.'};
+  if(days===2)return {action:'recovery',days,note:'Danas samo lagani aerobni rad i mobility; bez intenzivnog WOD-a.'};
+  return {action:'reduce',days,note:'Povratak u trening je progresivan; smanjen volumen i bez maksimalnog intenziteta.'};
 }
 function wodLoad(ex,reps,w){
   const map={
@@ -174,18 +188,18 @@ function wodLoad(ex,reps,w){
 }
 function wodPrescription(ex,reps,w){if(ex==='Run'){const a=adaptiveRunDecision(iso(sel));if(a.action==='rest')return ' · ⛔ ODMOR PREPORUČEN';const p=runPaceForDistance(reps,w);return (p?' · '+secToPace(p)+'/km':'')+(a.action==='reduce'?' · ↓ VOLUMEN':'');}if(ex==='KB Swing'&&Number(S.goals?.kbSwing))return ' · '+Number(S.goals.kbSwing)+' kg';const z=wodLoad(ex,reps,w);if(!z)return '';const tag=z.status==='deload'?' · DELOAD':z.status==='fatigue'?' · UMOR':fatigueStatus().level==='moderate'?' · OPREZ':'';return ' · ~'+z.kg+' kg'+(z.unit==='each'?' / ruka':'')+tag;}
 function weeklyLoadProfile(w){
-  const prof={run:0,cyc:0,squat:0,hinge:0,push:0,pull:0,olympic:0,gym:0,high:0};
+  const prof={run:0,cyc:0,squat:0,hinge:0,push:0,pull:0,olympic:0,gym:0,carry:0,jump:0,trunk:0};
   const add=(ex,reps)=>{
-    const r=Number(String(reps).match(/\d+/)?.[0]||10);
-    const v=Math.min(3,Math.max(1,r/8));
+    const r=Number(String(reps).match(/\d+/)?.[0]||10),v=Math.min(3,Math.max(1,r/8));
     const map={
       Run:['run',v],Bike:['cyc',v],Row:['cyc',v],SkiErg:['cyc',v],
-      'Back Squat':['squat',v],'Goblet Squat':['squat',v],'Wall Ball':['squat',v],'Box Jump':['squat',v],
-      'KB Swing':['hinge',v],'Deadlift':['hinge',v],
-      'Bench Press':['push',v],'Push-ups':['push',v],'Thruster':['push',v],'DB Thruster':['push',v],
-      'Pull-up':['pull',v],'Ring Row':['pull',v],'Toes-to-Bar':['pull',v],
+      'Back Squat':['squat',v],'Goblet Squat':['squat',v],'Air Squat':['squat',v],'Reverse Lunge':['squat',v],'Walking Lunge':['squat',v],'Cossack Squat':['squat',v],'Wall Ball':['squat',v],'Box Jump':['jump',v],
+      'KB Swing':['hinge',v],'Deadlift':['hinge',v],'DB Snatch':['hinge',v],'DB Hang Clean':['hinge',v],
+      'Bench Press':['push',v],'Push-ups':['push',v],'Hand-release Push-up':['push',v],'Pike Push-up':['push',v],'Handstand Hold':['push',v],'Thruster':['push',v],'DB Thruster':['push',v],'Scapular Push-up':['push',v],
+      'Pull-up':['pull',v],'Chin-up':['pull',v],'Ring Row':['pull',v],'Toes-to-Bar':['pull',v],
       'Power Clean':['olympic',v],'Clean & Jerk':['olympic',v],'Power Snatch':['olympic',v],
-      'Burpees':['gym',v],'Sit-up':['gym',v]
+      'Burpee':['gym',v],'Bear Crawl':['gym',v],'Sit-up':['trunk',v],'V-up':['trunk',v],'Hollow Hold':['trunk',v],'Hollow Rock':['trunk',v],'Dead Bug':['trunk',v],
+      'Farmer Carry':['carry',v],'Lateral Bound':['jump',v],'Broad Jump':['jump',v]
     };
     const m=map[ex];if(m)prof[m[0]]+=m[1];
   };
@@ -209,27 +223,56 @@ function profileSummary(){const p=S.profile||{},bits=[];if(p.sex)bits.push(p.sex
 function latestPullupReps(){for(let i=(S.logs||[]).length-1;i>=0;i--){for(const s of (S.logs[i].sets||[])){if(s.exercise==='Pull-up'&&s.reps)return Number(s.reps);}}return null;}
 function renderGoals(){const g=S.goals||{},run=goalRunTargetPace(),d=Number(g.runDistance)||5,label=document.getElementById('goalRunDistanceLabel');if(label)label.textContent=d+' KM';const cur=document.getElementById('goalRunCurrent'),tar=document.getElementById('goalRunTarget');if(cur)cur.textContent=run?secToClock(run.currentTime):'—';if(tar)tar.textContent=run?secToClock(run.targetTime):'—';const bar=document.getElementById('goalRunBar');if(bar)bar.style.width=(run?Math.min(100,(run.targetTime/run.currentTime)*100):0)+'%';const rp=document.getElementById('goalRunPace');if(rp)rp.textContent=run?'Training pace · '+secToPace(runTrainingPace())+'/km':'Unesi distancu i vremena';const rprog=document.getElementById('goalRunProgress');if(rprog)rprog.textContent=run?'Cilj pace · '+secToPace(run.target)+'/km':'—';const mini=document.getElementById('todayGoal5k'),miniMeta=document.getElementById('todayGoal5kMeta');if(mini)mini.textContent=run?(run.distance+' km'):'—';if(miniMeta)miniMeta.textContent=run?(secToClock(run.currentTime)+' → '+secToClock(run.targetTime)):'set goal';const sq=Number(S.rm?.squat)||0,st=Number(g.squatTarget)||0;const qv=document.getElementById('goalSquatCurrent');if(qv)qv.textContent=sq?sq+' kg':'—';const qt=document.getElementById('goalSquatTarget');if(qt)qt.textContent=st?st+' kg':'—';const qb=document.getElementById('goalSquatBar');if(qb)qb.style.width=(sq&&st?Math.min(100,sq/st*100):0)+'%';const pc=latestPullupReps(),pt=Number(g.pullTarget)||0;const pcEl=document.getElementById('goalPullCurrent');if(pcEl)pcEl.textContent=pc?pc+' reps':'—';const ptEl=document.getElementById('goalPullTarget');if(ptEl)ptEl.textContent=pt?pt+' reps':'—';const pb=document.getElementById('goalPullBar');if(pb)pb.style.width=(pc&&pt?Math.min(100,pc/pt*100):0)+'%';const a=adaptiveRunDecision(iso(sel)),ex=document.getElementById('runGoalExplanation');if(ex){if(run){ex.innerHTML='<div class="coach-grid"><div><span class="muted">DISTANCE</span><strong>'+run.distance+' km</strong></div><div><span class="muted">CURRENT</span><strong>'+secToPace(run.current)+'/km</strong></div><div><span class="muted">TARGET</span><strong>'+secToPace(run.target)+'/km</strong></div><div><span class="muted">TRAINING</span><strong>'+secToPace(runTrainingPace())+'/km</strong></div></div><p class="muted" style="margin-top:10px">Danas: <b>'+a.label+'</b> — '+a.note+'</p>';}else ex.innerHTML='<p class="muted">Unesi trkačku distancu i trenutno/ciljano vrijeme.</p>';}const i1=document.getElementById('goalRunDistanceInput'),i2=document.getElementById('goalRunCurrentInput'),i3=document.getElementById('goalRunTargetInput');if(i1)i1.value=g.runDistance||'';if(i2)i2.value=g.runCurrentTime||'';if(i3)i3.value=g.runTargetTime||'';const sk=document.getElementById('goalSquatTargetInput');if(sk)sk.value=g.squatTarget||'';const pk=document.getElementById('goalPullTargetInput');if(pk)pk.value=g.pullTarget||'';const kb=document.getElementById('goalKBInput');if(kb)kb.value=g.kbSwing||'';}
 function renderProfileData(){const p=S.profile||{},b=bmiValue();const vals={profileName:p.name||'',profileSex:p.sex||'',profileHeight:p.height||'',profileWeight:p.weight||'',profileBFInput:p.bodyfat||''};Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});const n=document.getElementById('profileNameLabel');if(n)n.textContent=p.name||'Moj profil';const sm=document.getElementById('profileSummary');if(sm)sm.textContent=profileSummary();const bmi=document.getElementById('profileBMI');if(bmi)bmi.textContent=b?b.toFixed(1):'—';const bl=document.getElementById('profileBMILabel');if(bl)bl.textContent=bmiLabel(b);const bf=document.getElementById('profileBF');if(bf)bf.textContent=p.bodyfat?p.bodyfat+'%':'—';const ss=document.getElementById('profileSessionsMetric');if(ss)ss.textContent=(S.logs||[]).length;}
+function wodDisplayMeta(name,w,d){
+  const m=wodProfile(name),balance=wodBalanceEngine(w,d);
+  return '<div class="grid2" style="margin-top:8px"><div><span class="muted">PERSONALITY</span><strong>'+m.personality+'</strong></div><div><span class="muted">STIMULUS</span><strong>'+m.stimulus+'</strong></div><div><span class="muted">TIME DOMAIN</span><strong>'+m.time+'</strong></div><div><span class="muted">ENERGY</span><strong>'+m.energy+'</strong></div></div><p class="muted" style="margin:8px 0 0">Programming check: '+balance+'</p>';
+}
 function coachRecommendation(q){const run=goalRunTargetPace(),ri=readinessImpact(),f=fatigueStatus(),tl=trainingLoadStatus(),z=activeWod(q.w,q.dow,iso(sel));if(q.dow===6||q.dow===3)return {title:'Recovery is part of the plan',body:'Danas nema potrebe za dodatnim volumenom. Mobility + lagano kretanje su dovoljni.'};let body='';if(run)body+='Running target: '+secToPace(runTrainingPace())+'/km na intervalima. ';if(S.goals?.kbSwing)body+='KB Swing: '+S.goals.kbSwing+' kg kao početna radna težina. ';body+=ri.note+' ';if(f.level!=='normal')body+=f.note;else if(tl.level==='high')body+='Training load je visok — drži kvalitetu, ne dodaj volumen.';else body+='Drži tehniku i završni RPE prema planu.';return {title:z[0]+' · '+z[1],body};}
 function renderCoach(){const q=info(iso(sel)),c=coachRecommendation(q),a=adaptiveRunDecision(iso(sel)),t=document.getElementById('coachTitle'),b=document.getElementById('coachBody');if(t)t.textContent=c.title;if(b)b.innerHTML='<p>'+c.body+'</p><p class="muted"><b>RUNNING:</b> '+a.label+' — '+a.note+'</p>';}
+const WOD_LIBRARY={
+  '1-0':{name:'ENGINE 12',type:'AMRAP',moves:[['Run','300 m'],['Push-ups','12'],['KB Swing','12'],['Ring Row','10']],meta:{personality:'ENGINE',stimulus:'aerobic power',time:'12 min',energy:'aerobic / glycolytic',patterns:['run','push','hinge','pull']}},
+  '1-2':{name:'MONOSTRUCTURAL + CORE',type:'EMOM',moves:[['Row','10 cal'],['DB Hang Clean','8'],['V-up','10'],['SkiErg','8 cal']],meta:{personality:'ENGINE',stimulus:'repeatable power',time:'16 min',energy:'aerobic power',patterns:['pull','hinge','trunk']}},
+  '1-5':{name:'FULL BODY CIRCUIT',type:'FOR TIME',moves:[['Bike','12 cal'],['Reverse Lunge','16'],['Burpee','8'],['Run','200 m']],meta:{personality:'HYBRID',stimulus:'mixed modal',time:'12–16 min',energy:'mixed',patterns:['cyc','squat','push','run']}},
+  '2-0':{name:'BODYWEIGHT ENGINE',type:'AMRAP',moves:[['Run','400 m'],['Air Squat','15'],['Hand-release Push-up','10'],['Chin-up','6']],meta:{personality:'GYMNASTICS',stimulus:'bodyweight density',time:'14 min',energy:'mixed',patterns:['run','squat','push','pull']}},
+  '2-2':{name:'POWER + CONTROL',type:'5 ROUNDS',moves:[['Power Clean','5'],['Box Jump','8'],['Pike Push-up','8'],['Hollow Hold','25 s']],meta:{personality:'POWER',stimulus:'power with skill',time:'15–18 min',energy:'alactic / glycolytic',patterns:['olympic','jump','push','trunk']}},
+  '2-5':{name:'AEROBIC LADDER',type:'30 min',moves:[['Run','400 m'],['Bike','10 cal'],['Row','300 m'],['Walking Lunge','12']],meta:{personality:'AEROBIC',stimulus:'sustainable aerobic volume',time:'30 min',energy:'aerobic',patterns:['run','cyc','pull','squat']}},
+  '3-0':{name:'GRINDER 15',type:'AMRAP',moves:[['Run','200 m'],['DB Thruster','10'],['Pull-up','6'],['Bear Crawl','20 m']],meta:{personality:'GRINDER',stimulus:'upper/lower interference',time:'15 min',energy:'glycolytic',patterns:['run','squat','push','pull']}},
+  '3-2':{name:'BARBELL ENGINE',type:'EMOM',moves:[['Row','12 cal'],['Clean & Jerk','4'],['Run','200 m'],['Toes-to-Bar','8']],meta:{personality:'BARBELL',stimulus:'power endurance',time:'20 min',energy:'mixed',patterns:['cyc','olympic','run','pull']}},
+  '3-5':{name:'LATERAL ENGINE',type:'FOR TIME',moves:[['SkiErg','12 cal'],['Lateral Bound','12'],['Push-up','12'],['Run','400 m'],['Sit-up','15']],meta:{personality:'HYBRID',stimulus:'change of direction + engine',time:'12–18 min',energy:'mixed',patterns:['cyc','jump','push','run','trunk']}},
+  '4-0':{name:'CARRY + CALISTHENICS',type:'AMRAP',moves:[['Farmer Carry','40 m'],['Burpee','8'],['Ring Row','10'],['Cossack Squat','8']],meta:{personality:'GRINDER',stimulus:'loaded carry + bodyweight',time:'16 min',energy:'glycolytic',patterns:['carry','push','pull','squat']}},
+  '4-2':{name:'SNATCH SKILL',type:'10 ROUNDS',moves:[['Power Snatch','3'],['Bike','8 cal'],['Handstand Hold','20 s'],['Hollow Rock','10']],meta:{personality:'POWER',stimulus:'speed-strength',time:'15–18 min',energy:'alactic / glycolytic',patterns:['olympic','cyc','push','trunk']}},
+  '4-5':{name:'LONG MIXED',type:'24 min',moves:[['Run','500 m'],['Row','400 m'],['Wall Ball','12'],['Reverse Lunge','12']],meta:{personality:'AEROBIC',stimulus:'long mixed modal',time:'24 min',energy:'aerobic / glycolytic',patterns:['run','pull','squat']}},
+  '5-0':{name:'DELOAD FLOW',type:'AMRAP EASY',moves:[['Bike','8 cal'],['Goblet Squat','10'],['Ring Row','8'],['Dead Bug','10']],meta:{personality:'AEROBIC',stimulus:'low stress movement',time:'12 min',energy:'aerobic',patterns:['cyc','squat','pull','trunk']}},
+  '5-2':{name:'DELOAD ENGINE',type:'EASY MIXED',moves:[['Run','200 m'],['Row','8 cal'],['DB Snatch','6'],['Scapular Push-up','10']],meta:{personality:'AEROBIC',stimulus:'technique + recovery',time:'16 min',energy:'aerobic',patterns:['run','pull','hinge','push']}},
+  '5-5':{name:'ZONE 2 MIXED',type:'ZONE 2',moves:[['Run','300 m'],['Bike','8 cal'],['Row','300 m'],['Walk','2 min']],meta:{personality:'AEROBIC',stimulus:'recovery aerobic',time:'30 min',energy:'aerobic',patterns:['run','cyc','pull']}},
+  '6-0':{name:'POWER SPRINTS',type:'INTERVALS',moves:[['Run','150 m'],['Broad Jump','5'],['Push-up','10'],['KB Swing','10']],meta:{personality:'POWER',stimulus:'speed + power',time:'10–12 min',energy:'alactic / glycolytic',patterns:['run','jump','push','hinge']}},
+  '6-2':{name:'THRUSTER LADDER',type:'FOR TIME',moves:[['Run','400 m'],['Thruster','15'],['Pull-up','10'],['Run','400 m'],['KB Swing','15']],meta:{personality:'GRINDER',stimulus:'high interference',time:'12–18 min',energy:'glycolytic',patterns:['run','squat','push','pull','hinge']}},
+  '6-5':{name:'TRIPLE ENGINE',type:'30 min EMOM',moves:[['Bike','10 cal'],['Run','200 m'],['SkiErg','10 cal'],['Burpee','8'],['Rest','—']],meta:{personality:'ENGINE',stimulus:'repeatable mixed intervals',time:'30 min',energy:'aerobic / glycolytic',patterns:['cyc','run','push']}},
+  '7-0':{name:'GYMNASTICS DENSITY',type:'15 min AMRAP',moves:[['Run','250 m'],['Pull-up','5'],['Hand-release Push-up','10'],['V-up','10'],['Air Squat','15']],meta:{personality:'GYMNASTICS',stimulus:'bodyweight density',time:'15 min',energy:'glycolytic',patterns:['run','pull','push','trunk','squat']}},
+  '7-2':{name:'OLYMPIC + ENGINE',type:'5 ROUNDS',moves:[['Power Clean','4'],['Box Jump','6'],['Row','12 cal'],['Pike Push-up','8']],meta:{personality:'BARBELL',stimulus:'power endurance',time:'15–20 min',energy:'mixed',patterns:['olympic','jump','cyc','push']}},
+  '7-5':{name:'HYBRID TEST',type:'20 min',moves:[['Run','400 m'],['Bike','12 cal'],['Wall Ball','15'],['Toes-to-Bar','8'],['Farmer Carry','40 m']],meta:{personality:'HYBRID',stimulus:'broad capacity',time:'20 min',energy:'mixed',patterns:['run','cyc','squat','pull','carry']}},
+  '8-0':{name:'BENCHMARK ENGINE',type:'12 min AMRAP',moves:[['Run','400 m'],['Burpee','10'],['KB Swing','12'],['Chin-up','6']],meta:{personality:'BENCHMARK',stimulus:'repeatable benchmark',time:'12 min',energy:'glycolytic',patterns:['run','push','hinge','pull']}},
+  '8-2':{name:'BENCHMARK POWER',type:'5 ROUNDS',moves:[['Run','300 m'],['Power Clean','5'],['Box Jump','8'],['Push-up','10']],meta:{personality:'BENCHMARK',stimulus:'power + engine',time:'15–20 min',energy:'mixed',patterns:['run','olympic','jump','push']}},
+  '8-5':{name:'BENCHMARK MIXED',type:'20 min AMRAP',moves:[['Run','400 m'],['Bike','12 cal'],['Wall Ball','15'],['Toes-to-Bar','8']],meta:{personality:'BENCHMARK',stimulus:'mixed modal capacity',time:'20 min',energy:'mixed',patterns:['run','cyc','squat','pull']}}
+};
 function getWodRaw(w,d){
-  if(w===8){
-    if(d===0)return ['Benchmark 12 min AMRAP','AMRAP',[['Run','400 m'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]];
-    if(d===2)return ['Benchmark 5 Rounds','ROUNDS',[['Run','400 m'],['Power Clean','5'],['Box Jump','8'],['Push-ups','10']]];
-    return ['Benchmark 20 min Mixed','MIXED',[['Run','800 m'],['Bike','15 cal'],['Wall Ball','20'],['Toes-to-Bar','10']]];
-  }
-  if(w>=6){
-    if(d===0)return ['10 min AMRAP','AMRAP',[['Run','200 m'],['Power Snatch','6'],['Burpees','8'],['Box Jump','10']]];
-    if(d===2)return ['For Time - 18 min cap','FOR TIME',[['Run','800 m'],['Thruster','20'],['Pull-up','15'],['Run','400 m'],['KB Swing','20']]];
-    return ['30 min EMOM','EMOM',[['Bike','12 cal'],['Run','200 m'],['KB Swing','12'],['Burpees','8'],['Rest','—']]];
-  }
-  if(w>=3){
-    if(d===0)return ['12 min AMRAP','AMRAP',[['Run','300 m'],['DB Thruster','10'],['Toes-to-Bar','10'],['Burpees','8']]];
-    if(d===2)return ['EMOM 20 min','EMOM',[['Run','200 m'],['Clean & Jerk','5'],['Pull-up','8'],['Row','10 cal']]];
-    return ['30 min Mixed','MIXED',[['Run','400 m'],['Row','500 m'],['Wall Ball','15'],['KB Swing','15'],['Bike','10 cal']]];
-  }
-  if(d===0)return ['14 min AMRAP','AMRAP',[['Run','400 m'],['Burpees','8'],['KB Swing','12'],['Pull-up','8']]];
-  if(d===2)return ['5 Rounds','ROUNDS',[['Run','300 m'],['Power Clean','5'],['Box Jump','8'],['Push-ups','10']]];
-  return ['24 min AMRAP','AMRAP',[['Run','400 m'],['Bike','10 cal'],['Wall Ball','15'],['DB Snatch','10'],['Sit-up','10']]];
+  const z=WOD_LIBRARY[w+'-'+d]||WOD_LIBRARY['1-'+d]||WOD_LIBRARY['1-0'];
+  return [z.name,z.type,z.moves];
+}
+function wodProfile(name){
+  for(const k in WOD_LIBRARY)if(WOD_LIBRARY[k].name===name)return WOD_LIBRARY[k].meta;
+  return {personality:'HYBRID',stimulus:'mixed',time:'—',energy:'mixed',patterns:[]};
+}
+function wodBalanceEngine(w,d){
+  const p=weeklyLoadProfile(w),meta=wodProfile(getWodRaw(w,d)[0]),notes=[];
+  if(p.run>=5)notes.push('run volumen je već visok');
+  if(p.squat>=5)notes.push('squat volumen je visok');
+  if(p.hinge>=5)notes.push('hinge volumen je visok');
+  if(p.push>p.pull*1.5)notes.push('dodaj pull');
+  if(p.pull>p.push*1.8)notes.push('dodaj push');
+  if(meta.patterns.includes('hinge')&&p.hinge>=4)notes.push('kontroliraj hinge');
+  if(meta.patterns.includes('squat')&&p.squat>=4)notes.push('kontroliraj squat');
+  return notes.length?notes.join(' · '):'Balans pokreta uredan.';
 }
 function getWodOverride(date){return S.wodOverrides?.[date]||null;}
 function activeWod(w,d,date=iso(sel)){const ov=getWodOverride(date);return ov?[ov.name,ov.type,ov.moves]:getWod(w,d);}
@@ -454,7 +497,7 @@ function render(s){
     $('start').style.display='block';
   }else{
     const z=activeWod(w,dow,iso(sel));
-    $('body').innerHTML='<div class="ex"><b>'+z[0]+'</b><div style="margin-top:7px">'+wodMovesForToday(z[2],q.w,iso(sel)).map(m=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<span class="pill" style="display:inline-block;margin:2px">'+v[0]+' · '+v[1]+'</span>';}).join('')+'</div><p class="muted">Originalni plan ostaje spremljen.</p></div>';
+    $('body').innerHTML='<div class="ex"><b>'+z[0]+'</b>'+wodDisplayMeta(z[0],q.w,q.dow)+'<div style="margin-top:7px">'+wodMovesForToday(z[2],q.w,iso(sel)).map(m=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<span class="pill" style="display:inline-block;margin:2px">'+v[0]+' · '+v[1]+'</span>';}).join('')+'</div><p class="muted">Originalni plan ostaje spremljen.</p></div>';
     $('start').style.display='block';
   }
   drawCalendar();
@@ -498,7 +541,7 @@ function startWorkout(){
     document.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{b.textContent=b.textContent==='✓'?'○':'✓';b.closest('.set').classList.toggle('done');});
   }else{
     const z=activeWod(q.w,q.dow,iso(sel));
-    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2><p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p><p class="muted">~ kg je orijentacijska startna težina prema tvom 1RM-u i trenutnom umoru. Cilj je RPE oko 7–8; ako tehnika ili tempo padaju, smanji težinu.</p><div class="card"><b>'+wodIntensityCap(q.w)+'</b><p class="muted">'+wodWeeklyNote(q.w)+'</p></div></div><div class="card">'+wodMovesForToday(z[2],q.w,iso(sel)).map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+wodPrescription(v[0],v[1],q.w)+'</div></div></div>';}).join('')+'</div><div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div><div class="card"><label>WOD rezultat<input id="wodResultInput" type="text" placeholder="npr. 12:43 / 5 rounds + 8 reps"></label><label>WOD RPE<input id="wodRpeInput" type="number" min="1" max="10" step=".5" placeholder="1–10"></label></div>';
+    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2>'+wodDisplayMeta(z[0],q.w,q.dow)+'<p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p><p class="muted">~ kg je orijentacijska startna težina prema tvom 1RM-u i trenutnom umoru. Cilj je RPE oko 7–8; ako tehnika ili tempo padaju, smanji težinu.</p><div class="card"><b>'+wodIntensityCap(q.w)+'</b><p class="muted">'+wodWeeklyNote(q.w)+'</p></div></div><div class="card">'+wodMovesForToday(z[2],q.w,iso(sel)).map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+wodPrescription(v[0],v[1],q.w)+'</div></div></div>';}).join('')+'</div><div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div><div class="card"><label>WOD rezultat<input id="wodResultInput" type="text" placeholder="npr. 12:43 / 5 rounds + 8 reps"></label><label>WOD RPE<input id="wodRpeInput" type="number" min="1" max="10" step=".5" placeholder="1–10"></label></div>';
     $('wodStart').onclick=()=>{clearInterval(timer);const started=Date.now();$('wodStart').classList.add('hidden');$('wodStop').classList.remove('hidden');timer=setInterval(()=>{$('wodClock').textContent=new Date(Date.now()-started).toISOString().slice(14,19)},250);};
     $('wodStop').onclick=()=>{clearInterval(timer);$('wodStop').classList.add('hidden');$('wodStart').classList.remove('hidden');toast('⏱ Vrijeme zaustavljeno');};
   }
@@ -545,7 +588,7 @@ function setupNav(){
   document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{
     document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
     ['today','program','log','progress','goals','profile','settings'].forEach(id=>$(id).classList.toggle('hidden',id!==btn.dataset.p));
-    if(btn.dataset.p==='program')$('weeks').innerHTML=PHASE.map((p,i)=>'<div class="card"><b>W'+(i+1)+' · '+p+'</b><p class="muted">PON WOD 1 · UTO Strength A · SRI WOD 2 · ČET Rest · PET Strength B · SUB WOD 3 · NED Rest</p></div>').join('');
+    if(btn.dataset.p==='program')$('weeks').innerHTML=PHASE.map((p,i)=>{const w=i+1;return '<div class="card"><div class="row"><b>W'+w+' · '+p+'</b><span class="pill">'+(w===5?'DELOAD':w===8?'BENCHMARK':'3 WOD')+'</span></div><p class="muted">PON · '+getWodRaw(w,0)[0]+' · '+wodProfile(getWodRaw(w,0)[0]).personality+'<br>SRI · '+getWodRaw(w,2)[0]+' · '+wodProfile(getWodRaw(w,2)[0]).personality+'<br>SUB · '+getWodRaw(w,5)[0]+' · '+wodProfile(getWodRaw(w,5)[0]).personality+'</p><p class="muted">UTO Strength A · PET Strength B · ČET/NED Recovery</p></div>';}).join('');
     if(btn.dataset.p==='log')renderLog();
     if(btn.dataset.p==='progress')renderProgress();if(btn.dataset.p==='goals')renderGoals();if(btn.dataset.p==='profile'){renderProfile();renderProfileData();}
     if(btn.dataset.p==='profile')renderProfile();
