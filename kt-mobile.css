@@ -62,3 +62,5 @@ input,textarea,select{background:#06121e!important;border-color:#173b56!importan
   .set{grid-template-columns:20px minmax(0,1fr) minmax(0,1fr) 52px 36px}
   .set input{padding:8px 4px}
 }
+
+.nav button[data-p="profile"]:before{content:"◉"}
