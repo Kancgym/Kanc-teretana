@@ -193,6 +193,33 @@ function readinessImpact(){
   if(r.score<70)return {level:'yellow',label:'MODERATE READINESS',factor:.95,note:'Treniraj, ali autoreguliraj intenzitet prema RPE-u.'};
   return {level:'green',label:'GOOD READINESS',factor:1,note:'Trening prema planu; koristi RPE za finu korekciju.'};
 }
+function sessionLoad(log){
+  if(!log)return 0;
+  const mins=Number(log.mins)||0;
+  const rpe=Number(log.rpe)||0;
+  if(!mins||!rpe)return 0;
+  return Math.round(mins*rpe);
+}
+function weeklyLoads(){
+  const out={};
+  (S.logs||[]).forEach(l=>{
+    const w=l.week||info(l.date).w;
+    out[w]=(out[w]||0)+sessionLoad(l);
+  });
+  return out;
+}
+function trainingLoadStatus(){
+  const loads=weeklyLoads();
+  const current=loads[info(iso(sel)).w]||0;
+  const prev=[];
+  for(let w=1;w<info(iso(sel)).w;w++)if(loads[w])prev.push(loads[w]);
+  const baseline=prev.length?prev.slice(-4).reduce((a,b)=>a+b,0)/Math.min(4,prev.length):null;
+  if(!baseline)return {level:'unknown',label:'NEMA BASELINE',current,baseline:null,note:'Nakon nekoliko tjedana treninga aplikacija će moći procijeniti tempo rasta opterećenja.'};
+  const ratio=current/baseline;
+  if(ratio>=1.25)return {level:'high',label:'BRZ SKOK OPTEREĆENJA',current,baseline,note:'Tjedno opterećenje je ≥25% iznad prosjeka prethodnih tjedana. Razmotri smanjenje volumena.'};
+  if(ratio>=1.10)return {level:'moderate',label:'POVEĆANO OPTEREĆENJE',current,baseline,note:'Opterećenje raste brže od uobičajenog. Prati readiness i RPE.'};
+  return {level:'normal',label:'NORMALNO OPTEREĆENJE',current,baseline,note:'Opterećenje je u prihvatljivom rasponu u odnosu na dosadašnji trening.'};
+}
 function fatigueStatus(){
   const logs=S.logs||[];
   const recent=logs.slice(-8);
@@ -326,9 +353,11 @@ function saveWorkout(){
 }
 function renderLog(){$('logs').innerHTML=S.logs.length?S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="ex"><b>'+dayDate(l.date).toLocaleDateString('hr-HR')+'</b> · '+l.type+'<br><span class="muted">'+l.session+' · '+(l.result||'bez scorea')+' · RPE '+(l.rpe||'—')+'</span></div>').join(''):'<p class="muted">Nema treninga.</p>';}
 function renderProgress(){
+  const tl=trainingLoadStatus();
+
   const ar=autoregulation('',S.week||1);
   const fatigueCard='<div class="card" id="fatigueCard"><div class="eyebrow">AUTOREGULACIJA</div><b>'+ar.label+'</b><p class="muted">'+ar.note+'</p></div>';
-$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';}
+$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';$('progress').insertAdjacentHTML('beforeend','<div class="card"><div class="eyebrow">TRAINING LOAD</div><b>'+tl.label+'</b><p>Ovaj tjedan: <strong>'+tl.current+'</strong> AU · Baseline: <strong>'+(tl.baseline?Math.round(tl.baseline):'—')+'</strong> AU</p><p class="muted">'+tl.note+'</p></div>');}
 function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),1800);}
 function setupNav(){
   document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{
