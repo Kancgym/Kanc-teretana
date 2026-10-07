@@ -60,3 +60,129 @@ h1,h2,h3,h4,strong,.big{font-weight:750;letter-spacing:-.035em}
 @media(max-width:1050px){.goal-grid{grid-template-columns:1fr 1fr}.profile-grid{grid-template-columns:1.5fr 1fr 1fr}}
 @media(max-width:900px){.goal-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:1fr 1fr}.profile-main{grid-column:span 2}.nav{display:flex!important;overflow-x:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav button{flex:0 0 76px;min-width:76px}}
 @media(max-width:560px){.goal-mini-grid,.coach-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:1fr 1fr}}
+
+/* =========================================================
+   KANC TRAINING — UNIFIED DESIGN SYSTEM v2
+   ========================================================= */
+:root{
+  --kt-bg:#02070d;--kt-surface:#071522;--kt-surface2:#0a1b2a;
+  --kt-line:#15364f;--kt-line2:#1c4867;--kt-blue:#087cff;--kt-cyan:#22d9ff;
+  --kt-text:#f5f9fd;--kt-muted:#7891a5;--kt-success:#21d6a0;--kt-warn:#ffbf57;
+}
+html{scroll-behavior:smooth}
+body{letter-spacing:-.005em}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(700px 300px at 70% 0%,rgba(8,124,255,.07),transparent 70%)}
+main{max-width:1500px}
+main>section:not(#today){animation:ktIn .28s ease both}
+@keyframes ktIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.nav{padding-top:126px!important}
+.nav button{position:relative;overflow:hidden;transition:background .18s,border-color .18s,transform .18s}
+.nav button:hover{transform:translateX(2px)}
+.nav button.on:after{content:"";position:absolute;right:7px;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 12px #fff}
+.nav button[data-p="goals"]:before{content:"◎"}
+.nav button[data-p="profile"]:before{content:"◉"}
+
+.page-head{
+  min-height:92px;padding:4px 2px 18px;margin-bottom:4px;
+  border-bottom:1px solid rgba(28,72,103,.42);
+}
+.page-head h2{font-size:38px;letter-spacing:-.055em}
+.page-head p{max-width:760px;line-height:1.55}
+
+section>.card:first-child:not(#visualHero){
+  border-color:#16405e;
+}
+
+.card{
+  position:relative;
+  border-color:rgba(21,54,79,.92);
+  background:linear-gradient(145deg,rgba(8,25,40,.98),rgba(3,12,21,.99));
+  box-shadow:0 16px 42px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.025);
+}
+.card:hover{box-shadow:0 18px 46px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.025)}
+
+.section-head{min-height:34px}
+.section-head h3{margin:2px 0;font-size:17px}
+.eyebrow{font-size:10px;letter-spacing:.18em}
+.pill{border-radius:999px!important;padding:5px 9px!important;font-size:9px;font-weight:850}
+
+button{
+  min-height:38px;border-radius:10px;border:1px solid #173a55;
+  transition:transform .15s,box-shadow .15s,border-color .15s,background .15s;
+}
+button:hover{transform:translateY(-1px);border-color:#26709d}
+button:active{transform:translateY(0)}
+button.primary,.primary{
+  background:linear-gradient(135deg,#087cff,#10c9ff)!important;
+  box-shadow:0 10px 28px rgba(8,124,255,.20)!important;
+}
+input,textarea,select{
+  border-radius:10px!important;
+  min-height:42px;
+  box-shadow:inset 0 1px rgba(255,255,255,.025);
+}
+input:focus,textarea:focus,select:focus{
+  outline:none!important;border-color:#20cfff!important;
+  box-shadow:0 0 0 3px rgba(34,217,255,.08),inset 0 1px rgba(255,255,255,.04)!important;
+}
+
+#todayGoals,#todayCoach{border-color:#16435f}
+#todayGoals .section-head{margin-bottom:3px}
+#todayGoals h3{font-size:17px}
+#todayGoals .goal-mini-grid>div{
+  transition:.18s;position:relative;overflow:hidden;
+}
+#todayGoals .goal-mini-grid>div:after{
+  content:"";position:absolute;inset:auto -20px -30px auto;width:70px;height:70px;
+  background:radial-gradient(circle,rgba(34,217,255,.10),transparent 70%);
+}
+
+#active{border-color:#1a5977!important;background:linear-gradient(145deg,#071d2c,#030d17)}
+#activeTitle{letter-spacing:-.04em}
+#active .timer{font-variant-numeric:tabular-nums;font-weight:850}
+.set{border-radius:11px!important}
+.set.done{box-shadow:inset 0 0 0 1px rgba(34,217,255,.12)}
+
+#progress>.card:first-child{
+  padding:26px 24px;
+  background:radial-gradient(500px 180px at 90% 0%,rgba(8,124,255,.14),transparent 60%),linear-gradient(145deg,#081b2b,#030d17);
+}
+#progress>.grid2{gap:12px}
+#progress>.grid2>.card{min-height:130px;display:flex;flex-direction:column;justify-content:center}
+#progress>.grid2>.card small{font-size:9px;letter-spacing:.16em;color:#789bb4}
+#progress>.grid2>.card h2{font-size:34px;margin:7px 0 0}
+
+#program .card{overflow:hidden}
+#program .card h2,#program .card h3{letter-spacing:-.04em}
+#program .card .pill{float:right}
+#log .card:first-child{padding:24px}
+#logs>div{border-color:#15364f!important;background:#061522!important;border-radius:12px!important}
+#settings>.card,#profile>.card,#goals>.card{max-width:1180px}
+#settings>.card h2,#profile>.card h2,#goals>.card h2{letter-spacing:-.05em}
+#settings>.card>.eyebrow,#profile>.card>.eyebrow{margin-bottom:4px}
+
+#profile .profile-main{
+  background:radial-gradient(300px 160px at 100% 0%,rgba(8,124,255,.12),transparent 70%),linear-gradient(145deg,#091c2d,#030d17);
+  border-color:#174765;
+}
+#profile .metric-card{background:linear-gradient(145deg,#081a29,#040e17)}
+#profile .card:not(.profile-main) strong{color:#fff}
+
+#goals .goal-card{transition:transform .2s,border-color .2s,box-shadow .2s}
+#goals .goal-card:hover{transform:translateY(-3px);border-color:#26729d;box-shadow:0 22px 48px rgba(0,0,0,.30)}
+#goals .goal-running:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(#22d9ff,#087cff)}
+#goals>.card{background:linear-gradient(145deg,#071725,#030d17)}
+
+@media(min-width:901px){
+  #today{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.75fr);gap:14px;align-items:start}
+  #today>#visualHero{grid-column:1/-1}
+  #today>#todayCoach{grid-column:1/-1}
+  #today>#days{grid-column:1/-1}
+  #today>.card:has(#date){grid-column:1/-1}
+  #today>#todayGoals{grid-column:1/-1}
+  #today>.card:has(#session){grid-column:1}
+  #today>.card:has(#activityList){grid-column:2}
+  #today>#active{grid-column:1/-1}
+  #today>.card:has(#rpe){grid-column:1/-1}
+}
