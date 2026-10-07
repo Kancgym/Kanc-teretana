@@ -249,6 +249,10 @@ function render(s){
   $('type').textContent=sel==='2026-10-07'?'1RM TEST':x[1];
   $('session').textContent=sel==='2026-10-07'?'1RM TEST · Projected 1RM testing':x[0]+' · '+x[1];
   $('focus').textContent=sel==='2026-10-07'?'Strength testing':x[2];
+  const tr=readinessToday();
+  const readinessCard='<div class="card" id="todayReadinessCard"><div class="eyebrow">TODAY'S READINESS</div><b>'+(tr?tr.score+' / 100 · '+readinessImpact().label:'Garmin podaci nisu uneseni')+'</b><p class="muted">'+(tr?readinessImpact().note:'Postavke → Daily Readiness · Body Battery + Sleep Score + HRV')+'</p></div>';
+  $('body').insertAdjacentHTML('afterbegin',readinessCard);
+
   $('days').innerHTML=DAYS.map((z,i)=>'<button class="'+(i===dow?'sel':'')+'" data-d="'+i+'">'+z[0]+'<br><small>'+z[1]+'</small></button>').join('');
   document.querySelectorAll('[data-d]').forEach(btn=>btn.onclick=()=>{const n=new Date(sel);n.setDate(n.getDate()+(Number(btn.dataset.d)-dow));render(iso(n));});
   if(x[1]==='REST'){
@@ -333,7 +337,7 @@ function setupNav(){
     if(btn.dataset.p==='program')$('weeks').innerHTML=PHASE.map((p,i)=>'<div class="card"><b>W'+(i+1)+' · '+p+'</b><p class="muted">PON WOD 1 · UTO Strength A · SRI WOD 2 · ČET Rest · PET Strength B · SUB WOD 3 · NED Rest</p></div>').join('');
     if(btn.dataset.p==='log')renderLog();
     if(btn.dataset.p==='progress')renderProgress();
-    if(btn.dataset.p==='settings'){$('startDate').value=S.start;['squat','deadlift','bench','press'].forEach(k=>$('rm_'+k).value=S.rm[k]||'');}
+    if(btn.dataset.p==='settings'){$('startDate').value=S.start;['squat','deadlift','bench','press'].forEach(k=>$('rm_'+k).value=S.rm[k]||'');const rr=S.readiness[iso(sel)];if(rr){$('readinessBB').value=rr.bb;$('readinessSleep').value=rr.sleep;$('readinessHRV').value=rr.hrv;$('readinessStatus').value=rr.status;$('readinessFeel').value=rr.feel;$('readinessResult').innerHTML='<div class="card"><b>'+rr.score+' / 100 · '+readinessImpact().label+'</b><p class="muted">'+readinessImpact().note+'</p></div>';}}
   });
 }
 $('start').onclick=startWorkout;
