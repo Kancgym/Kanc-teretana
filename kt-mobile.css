@@ -151,3 +151,368 @@ body,button,input,textarea,select{font-family:Inter,ui-sans-serif,system-ui,-app
   #today > .card:has(#session) #session{font-size:20px}
   #days button{font-size:8px}
 }
+
+/* =========================================================
+   KANC TRAINING — PREMIUM UI PASS
+   Mobile Today + Goals: cleaner hierarchy, less "dashboard",
+   stronger performance-app visual language.
+   ========================================================= */
+@media(max-width:900px){
+  :root{
+    --kt-bg:#03080f;
+    --kt-surface:#07131f;
+    --kt-surface-2:#0a1927;
+    --kt-line:#17334b;
+    --kt-blue:#087cff;
+    --kt-cyan:#22d9ff;
+    --kt-text:#f5f9fd;
+    --kt-muted:#7790a5;
+  }
+
+  body{
+    background:
+      radial-gradient(900px 420px at 50% -80px,rgba(8,124,255,.20),transparent 58%),
+      linear-gradient(180deg,#02070d 0%,#06111c 48%,#02070d 100%);
+  }
+  body:before{
+    opacity:.45;
+    background-size:36px 36px;
+  }
+
+  main{padding:8px 10px 100px!important}
+
+  /* top navigation */
+  .nav{
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    background:rgba(2,8,15,.90)!important;
+    border-bottom:1px solid rgba(34,217,255,.13)!important;
+    box-shadow:0 12px 32px rgba(0,0,0,.42)!important;
+  }
+  .nav button{
+    color:#718ba1;
+    transition:.18s ease;
+  }
+  .nav button.on{
+    background:linear-gradient(145deg,#087cff,#10bdf5)!important;
+    box-shadow:0 7px 22px rgba(8,124,255,.28),inset 0 1px rgba(255,255,255,.20)!important;
+    color:#fff;
+  }
+
+  #today{gap:6px!important}
+  #today>.card,#today>.daybar{margin:0!important}
+
+  /* Hero */
+  #visualHero{
+    min-height:178px!important;
+    padding:20px 18px!important;
+    border:1px solid rgba(34,217,255,.18)!important;
+    border-radius:20px!important;
+    background:
+      radial-gradient(500px 180px at 90% 0%,rgba(22,224,255,.13),transparent 55%),
+      linear-gradient(135deg,#061522 0%,#071b2b 52%,#040d16 100%)!important;
+    box-shadow:0 18px 45px rgba(0,0,0,.30),inset 0 1px rgba(255,255,255,.04)!important;
+  }
+  #visualHero .eyebrow{font-size:9px;letter-spacing:.20em}
+  #visualHero h2{
+    font-size:29px!important;
+    letter-spacing:-.045em;
+    max-width:75%!important;
+    margin:8px 0 10px!important;
+  }
+  #visualHero h2:after{
+    width:78px;height:3px;margin-top:12px;
+  }
+  #visualHero p{font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+  #visualHero .section-icon{
+    position:absolute!important;
+    right:18px;top:22px;
+    font-size:30px!important;
+    opacity:.95;
+    filter:drop-shadow(0 0 14px rgba(34,217,255,.35));
+  }
+
+  /* Coach */
+  #todayCoach{
+    padding:12px 14px!important;
+    border-radius:15px!important;
+    background:linear-gradient(135deg,#071725,#06111c)!important;
+    border-color:#12334d!important;
+  }
+  #todayCoach .eyebrow{font-size:8px}
+  #todayCoach h3{font-size:14px!important;letter-spacing:-.02em}
+  #todayCoach .coach-panel{
+    font-size:11px!important;
+    color:#a5b7c7;
+  }
+  .coach-dot{
+    width:7px!important;height:7px!important;
+    box-shadow:0 0 12px rgba(34,217,255,.7);
+  }
+
+  /* date / week */
+  #today>.card:has(#date){
+    padding:11px 13px!important;
+    border-radius:15px!important;
+    background:#07131f!important;
+  }
+  #today>.card:has(#date) #date{
+    font-size:15px;font-weight:850;letter-spacing:-.02em;
+  }
+
+  /* weekday strip */
+  #days{
+    border-radius:15px!important;
+    background:rgba(5,16,27,.92)!important;
+    border:1px solid #112b40!important;
+    padding:4px!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.025);
+  }
+  #days button{
+    height:46px!important;
+    border-radius:11px!important;
+    color:#718da5;
+    background:transparent;
+  }
+  #days button.sel{
+    background:linear-gradient(145deg,#087cff,#0dbcf4)!important;
+    color:#fff!important;
+    box-shadow:0 6px 18px rgba(8,124,255,.25)!important;
+  }
+  #days button small{opacity:.72}
+
+  /* goals */
+  #todayGoals{
+    padding:13px!important;
+    border-radius:17px!important;
+    background:linear-gradient(145deg,#071725,#050f19)!important;
+  }
+  #todayGoals .eyebrow{font-size:8px}
+  #todayGoals h3{
+    font-size:14px!important;
+    margin-top:3px!important;
+    letter-spacing:-.025em;
+  }
+  #todayGoals #openGoals{
+    border:1px solid #194563!important;
+    background:#0a1b2a!important;
+    color:#b7d5e8!important;
+    border-radius:9px!important;
+  }
+  #todayGoals .goal-mini-grid{
+    grid-template-columns:repeat(3,1fr)!important;
+    gap:6px!important;
+  }
+  #todayGoals .goal-mini-grid>div{
+    min-height:68px;
+    padding:10px 8px!important;
+    border:1px solid #15334a!important;
+    border-radius:12px!important;
+    background:linear-gradient(145deg,#0a1b2a,#06121e)!important;
+  }
+  #todayGoals .goal-mini-grid span{
+    font-size:8px!important;
+    letter-spacing:.12em;
+  }
+  #todayGoals .goal-mini-grid strong{
+    font-size:16px!important;
+    letter-spacing:-.04em;
+    color:#fff;
+  }
+  #todayGoals .goal-mini-grid small{
+    font-size:8px!important;
+    color:#6e879b;
+  }
+
+  /* workout card — focal point */
+  #today>.card:has(#session){
+    position:relative;
+    overflow:hidden;
+    padding:16px!important;
+    border-radius:19px!important;
+    border:1px solid rgba(34,217,255,.20)!important;
+    background:
+      radial-gradient(300px 160px at 100% 0%,rgba(8,124,255,.15),transparent 60%),
+      linear-gradient(145deg,#081a29,#050e17)!important;
+    box-shadow:0 20px 48px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.04)!important;
+  }
+  #today>.card:has(#session):before{
+    content:"TODAY";
+    position:absolute;
+    top:14px;right:15px;
+    color:#4f7692;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.18em;
+  }
+  #today>.card:has(#session) #type{
+    font-size:8px!important;
+    letter-spacing:.16em;
+    color:#22d9ff!important;
+  }
+  #today>.card:has(#session) #session{
+    font-size:25px!important;
+    line-height:1!important;
+    letter-spacing:-.045em;
+    margin:7px 0!important;
+    max-width:80%;
+  }
+  #today>.card:has(#session) #focus{
+    font-size:11px!important;
+    line-height:1.45;
+    max-width:88%;
+  }
+  #today>.card:has(#session) #body{
+    color:#b7c8d5;
+    font-size:12px;
+  }
+  #today>.card:has(#session) .grid2{
+    gap:7px!important;
+    margin-top:14px!important;
+  }
+  #today>.card:has(#session) .grid2 button{
+    min-height:47px;
+    border-radius:12px!important;
+    font-weight:850;
+  }
+  #today>.card:has(#session) .grid2 .primary{
+    box-shadow:0 9px 25px rgba(8,124,255,.27)!important;
+  }
+
+  /* activity + result cards */
+  #today>.card:has(#activityList),
+  #today>.card:has(#rpe){
+    border-radius:15px!important;
+    background:#06121e!important;
+  }
+  #today>.card:has(#activityList) .eyebrow,
+  #today>.card:has(#rpe) .eyebrow{font-size:8px}
+  #today>.card:has(#rpe) label{
+    font-size:10px;
+    color:#839bad;
+  }
+
+  /* Goals page */
+  #goals .page-head{
+    padding:10px 2px 4px;
+  }
+  #goals .page-head h2{
+    font-size:30px!important;
+    letter-spacing:-.045em;
+    margin:5px 0;
+  }
+  #goals .page-head p{
+    font-size:11px;
+    line-height:1.5;
+    max-width:92%;
+  }
+  #goals .goal-grid{
+    gap:9px!important;
+  }
+  #goals .goal-card{
+    min-height:0!important;
+    padding:16px!important;
+    border-radius:18px!important;
+    border:1px solid #15364e!important;
+    background:
+      radial-gradient(240px 120px at 100% 0%,rgba(8,124,255,.11),transparent 65%),
+      linear-gradient(145deg,#081a29,#050e17)!important;
+    box-shadow:0 14px 34px rgba(0,0,0,.24)!important;
+  }
+  #goals .goal-top{align-items:flex-start}
+  #goals .goal-icon{
+    display:inline-flex;
+    width:32px;height:32px;
+    align-items:center;justify-content:center;
+    border-radius:10px;
+    background:#0a2234;
+    border:1px solid #17435e;
+    color:#22d9ff;
+    margin-bottom:8px;
+  }
+  #goals .goal-card h3{
+    font-size:19px!important;
+    letter-spacing:-.035em;
+    margin:3px 0 0;
+  }
+  #goals .goal-tag{
+    padding:5px 8px;
+    border-radius:999px;
+    background:#081a2a;
+    border:1px solid #173c57;
+    color:#78a3bd;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.08em;
+  }
+  #goals .goal-main{
+    margin-top:18px;
+    align-items:flex-end;
+  }
+  #goals .goal-main strong{
+    font-size:25px!important;
+    letter-spacing:-.055em;
+  }
+  #goals .goal-main .muted{
+    font-size:8px;
+    letter-spacing:.12em;
+  }
+  #goals .goal-arrow{
+    color:#2a6688;
+    font-size:20px;
+    padding-bottom:3px;
+  }
+  #goals .goal-bar{
+    height:5px!important;
+    margin-top:16px!important;
+    background:#102a3d!important;
+    border-radius:999px;
+  }
+  #goals .goal-bar span{
+    background:linear-gradient(90deg,#087cff,#22d9ff)!important;
+    box-shadow:0 0 12px rgba(34,217,255,.25);
+  }
+  #goals .goal-meta{
+    margin-top:8px;
+    color:#7190a5;
+    font-size:9px;
+  }
+  #goals>.card{
+    border-radius:17px!important;
+    background:#06121e!important;
+  }
+  #goals>.card h3{font-size:15px}
+  #goals>.card label{
+    font-size:10px;
+    color:#8ca2b3;
+  }
+  #goals input{
+    margin-top:5px!important;
+    border-radius:10px!important;
+    min-height:44px;
+  }
+}
+
+@media(min-width:901px){
+  /* desktop refinement without changing the existing layout */
+  .card{
+    border-radius:18px;
+    box-shadow:0 16px 42px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.025);
+  }
+  #visualHero{
+    min-height:285px!important;
+    border-radius:22px!important;
+    padding:42px!important;
+  }
+  #visualHero h2{font-size:52px!important;letter-spacing:-.055em}
+  #today>.card:has(#session){
+    border-radius:20px;
+    background:linear-gradient(145deg,#071a2a,#040d16);
+    border-color:#154461;
+  }
+  #goals .goal-card{
+    border-radius:20px;
+    background:linear-gradient(145deg,#081a29,#040d16);
+    box-shadow:0 18px 42px rgba(0,0,0,.22);
+  }
+}
