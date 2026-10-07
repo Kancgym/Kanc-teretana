@@ -21,7 +21,7 @@ button,.pill{border-radius:12px}
 .progress-ring span{position:relative;z-index:1;font-weight:900}
 .readiness-hero{display:flex;justify-content:space-between;align-items:center;gap:16px}
 .section-icon{font-size:24px;opacity:.95}
-</style></style></head><body><main>
+</style></style><link rel="stylesheet" href="moviq.css?v=1"></head><body><main>
 <div class="row"><div><div class="eyebrow">KANC TRAINING</div><div class="big" id="title"></div></div><span class="pill" id="phase"></span></div>
 <nav class="nav"><button data-p="today" class="on">Danas</button><button data-p="program">Program</button><button data-p="log">Logbook</button><button data-p="progress">Progress</button><button data-p="settings">Postavke</button></nav>
 <section id="today"><div class="card" id="visualHero"><div class="readiness-hero"><div><div class="eyebrow">KANC TRAINING</div><h2 style="margin:.25rem 0">Train smart. Move strong.</h2><p class="muted" style="margin:0">Strength · Engine · Conditioning · Recovery</p></div><div class="section-icon">⚡</div></div></div><div class="card"><div class="row"><div><b id="date"></b><div class="muted" id="week"></div></div></div><div class="cal" id="cal" style="margin-top:10px"></div></div><div class="daybar" id="days"></div><div class="card"><div class="eyebrow" id="type"></div><h2 id="session"></h2><p class="muted" id="focus"></p><div id="body"></div><div class="grid2" style="margin-top:12px"><button id="modify">🔄 Promijeni</button><button class="primary" id="start">▶ START WORKOUT</button></div></div>
@@ -294,9 +294,9 @@ function render(s){
   $('phase').textContent=PHASE[w-1];
   $('date').textContent=sel.toLocaleDateString('hr-HR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   $('week').textContent='Tjedan '+w+' · '+PHASE[w-1];
-  $('type').textContent=sel==='2026-10-07'?'1RM TEST':x[1];
-  $('session').textContent=sel==='2026-10-07'?'1RM TEST · Projected 1RM testing':x[0]+' · '+x[1];
-  $('focus').textContent=sel==='2026-10-07'?'Strength testing':x[2];
+  $('type').textContent=iso(sel)==='2026-10-07'?'1RM TEST':x[1];
+  $('session').textContent=iso(sel)==='2026-10-07'?'1RM TEST · Projected 1RM testing':x[0]+' · '+x[1];
+  $('focus').textContent=iso(sel)==='2026-10-07'?'Strength testing':x[2];
   const tr=readinessToday();
   const readinessCard='<div class="card" id="todayReadinessCard"><div class="eyebrow">TODAY READINESS</div><b>'+(tr?tr.score+' / 100 · '+readinessImpact().label:'Garmin podaci nisu uneseni')+'</b><p class="muted">'+(tr?readinessImpact().note:'Postavke → Daily Readiness · Body Battery + Sleep Score + HRV')+'</p></div>';
   $('body').insertAdjacentHTML('afterbegin',readinessCard);
@@ -306,7 +306,7 @@ function render(s){
   if(x[1]==='REST'){
     $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>';
     $('start').style.display='none';
-  }else if(sel==='2026-10-07'){
+  }else if(iso(sel)==='2026-10-07'){
     $('body').innerHTML='<div class="card"><b>Projektirani 1RM test</b><p class="muted">Danas testiramo Back Squat, Deadlift, Bench Press i Strict Press. Za svaku vježbu dođi do približno 90% očekivanog maksimuma i napravi maksimalan broj tehnički kvalitetnih ponavljanja.</p><p class="muted">Preporuka: 2–6 ponavljanja. Nakon svake vježbe upiši rezultat u Postavke → Projektirani 1RM.</p></div><div class="grid2"><div class="card"><b>1</b><br>Back Squat</div><div class="card"><b>2</b><br>Deadlift</div><div class="card"><b>3</b><br>Bench Press</div><div class="card"><b>4</b><br>Strict Press</div></div>';
     $('start').style.display='block';
   }else if(x[1].startsWith('STRENGTH')){
@@ -346,7 +346,7 @@ function startWorkout(){
   const q=info(iso(sel)),x=DAYS[q.dow];
   $('active').classList.remove('hidden');
   $('activeTitle').textContent=x[1];
-  if(sel==='2026-10-07'){
+  if(iso(sel)==='2026-10-07'){
     const ex=[['squat','Back Squat'],['deadlift','Deadlift'],['bench','Bench Press'],['press','Strict Press']];
     $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">PROJECTED 1RM TEST</div><h2>Današnji test</h2><p class="muted">Za svaku vježbu: zagrijavanje → približno 90% očekivanog maksimuma → maksimalan broj tehnički kvalitetnih ponavljanja. Ne forsiraj tehniku.</p></div>'+
       ex.map(e=>'<div class="exercise-row"><div><b>'+e[1]+'</b><div class="muted">Rezultat unosiš nakon testa u Postavke → Projektirani 1RM</div></div><span class="pill">TEST</span></div>').join('')+
