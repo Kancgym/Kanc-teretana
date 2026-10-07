@@ -72,3 +72,82 @@ body,button,input,textarea,select{font-family:Inter,ui-sans-serif,system-ui,-app
 .profile-grid{grid-template-columns:1fr 1fr!important}.profile-main{grid-column:span 2}.metric-card strong{font-size:25px}
 .coach-grid{grid-template-columns:1fr!important}.page-head h2{font-size:26px}
 .nav{display:flex!important;overflow-x:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav button{flex:0 0 76px;min-width:76px}
+
+/* 2026-10 mobile Today redesign */
+@media(max-width:900px){
+  body{background:linear-gradient(180deg,#02070d 0%,#06111c 42%,#02070d 100%)}
+  main{padding:8px 10px 96px}
+  .nav{margin:-8px -10px 10px;width:calc(100% + 20px);padding:54px 5px 6px;gap:3px;background:rgba(2,10,18,.99);background-size:100px auto;background-position:center 6px}
+  .nav button{flex:1 1 0;min-width:0;height:48px;padding:5px 1px;font-size:8px;border-radius:9px}
+  .nav button:before{font-size:14px}
+  #today{display:flex;flex-direction:column;gap:0}
+  #today > .card{margin:5px 0}
+  #today > #visualHero{order:1}
+  #today > #todayCoach{order:2}
+  #today > .card:has(#date){order:3}
+  #today > #days{order:4}
+  #today > #todayGoals{order:5}
+  #today > .card:has(#session){order:6}
+  #today > .card:has(#activityList){order:7}
+  #today > #active{order:8}
+  #today > .card:has(#rpe){order:9}
+
+  #visualHero{min-height:132px;height:auto;padding:17px 16px;border-radius:15px;margin-top:2px!important}
+  #visualHero h2{font-size:24px;line-height:1.02;max-width:78%;margin:5px 0}
+  #visualHero p{font-size:11px}
+  #visualHero .section-icon{font-size:30px!important}
+  #visualHero:before{right:-25%;top:-35%;width:70%}
+  #visualHero:after{right:-100px;bottom:-95px;width:220px;height:130px;border-width:18px}
+
+  #todayCoach{padding:12px 13px}
+  #todayCoach .section-head{margin-bottom:5px}
+  #todayCoach h3{font-size:15px;margin:2px 0}
+  #todayCoach .coach-panel{font-size:12px;line-height:1.4}
+  #todayCoach .coach-panel p{margin:5px 0}
+
+  #today > .card:has(#date){padding:9px 11px}
+  #today > .card:has(#date) #date{font-size:14px}
+  #today > .card:has(#date) #week{font-size:10px}
+  #today > .card:has(#date) .cal{display:none}
+
+  #days{display:grid!important;grid-template-columns:repeat(7,1fr);gap:3px;background:#061321;border:1px solid #102d45;border-radius:12px;padding:3px}
+  #days button{min-width:0!important;height:43px;padding:5px 0;font-size:9px;border-radius:8px}
+  #days button small{font-size:7px}
+
+  #todayGoals{padding:11px 12px}
+  #todayGoals .section-head{align-items:center}
+  #todayGoals h3{font-size:13px;margin:0}
+  #todayGoals #openGoals{font-size:9px;padding:7px 8px}
+  #todayGoals .goal-mini-grid{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:5px!important;margin-top:8px}
+  #todayGoals .goal-mini-grid>div{padding:8px 6px;background:#06121e;border:1px solid #12304a;border-radius:9px}
+  #todayGoals .goal-mini-grid strong{display:block;font-size:14px;line-height:1.1;margin-top:3px}
+  #todayGoals .goal-mini-grid small{display:block;font-size:8px;margin-top:3px;color:#7f99ae}
+
+  #today > .card:has(#session){padding:13px}
+  #today > .card:has(#session) #type{font-size:9px}
+  #today > .card:has(#session) #session{font-size:22px;line-height:1.05;margin:4px 0}
+  #today > .card:has(#session) #focus{font-size:11px;margin:4px 0 8px}
+  #today > .card:has(#session) #body{font-size:12px}
+  #today > .card:has(#session) > .grid2{grid-template-columns:1fr 1fr;gap:6px}
+  #today > .card:has(#session) > .grid2 button{min-height:44px;font-size:11px}
+
+  #today > .card:has(#activityList){padding:10px 12px}
+  #today > .card:has(#activityList) .row b{font-size:12px}
+  #today > .card:has(#activityList) button{font-size:10px;padding:7px 9px}
+
+  #todayReadinessCard{order:0!important;padding:9px 11px!important;margin:4px 0!important}
+  #todayReadinessCard .eyebrow{font-size:8px}
+  #todayReadinessCard b{font-size:12px}
+  #todayReadinessCard p{font-size:10px;margin:3px 0 0}
+
+  #today > .card:has(#rpe){padding:12px}
+  #today > .card:has(#rpe) .grid2{gap:6px}
+  #today > .card:has(#rpe) textarea{min-height:65px}
+}
+@media(max-width:420px){
+  main{padding-left:8px;padding-right:8px}
+  .nav{width:calc(100% + 16px);margin-left:-8px;margin-right:-8px}
+  #visualHero h2{font-size:22px}
+  #today > .card:has(#session) #session{font-size:20px}
+  #days button{font-size:8px}
+}
