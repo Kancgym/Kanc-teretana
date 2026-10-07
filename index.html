@@ -107,13 +107,13 @@ function restoreDraft(){
   toast('↩️ Nastavljamo nedovršeni trening');
 }
 function openActivityModal(date){
-  $('sheet').innerHTML='<div class="row"><div><div class="eyebrow">MOJA AKTIVNOST</div><h2>Dodaj / planiraj aktivnost</h2></div><button id="closeActivity">✕</button></div><p class="muted">Upiši trajanje i prosječni RPE. Aplikacija automatski računa opterećenje: minute × RPE.</p><label>Naziv aktivnosti<input id="actName" placeholder="npr. Utrka 5,5 km"></label><div class="grid2"><label>Vrsta<select id="actType"><option>Trčanje</option><option>Natjecanje</option><option>Bicikl</option><option>Plivanje</option><option>Hodanje</option><option>Mobility</option><option>Drugo</option></select></label><label>Datum<input id="actDate" type="date" value="'+date+'"></label><label>Trajanje (min)<input id="actMins" type="number" min="1" placeholder="npr. 30"></label><label>RPE<input id="actRpe" type="number" min="1" max="10" step=".5" placeholder="npr. 8"></label><label>Udaljenost (km)<input id="actKm" type="number" min="0" step=".1" placeholder="opcionalno"></label><label>Planirano<select id="actPlanned"><option value="true">Da</option><option value="false">Ne</option></select></label></div><div id="actLoad" class="card"><b>Opterećenje: — AU</b><p class="muted">Unesi trajanje i RPE.</p></div><button class="primary" id="saveActivity" style="width:100%">SPREMI AKTIVNOST</button>';
+  $('sheet').innerHTML='<div class="row"><div><div class="eyebrow">MOJA AKTIVNOST</div><h2>Dodaj / planiraj aktivnost</h2></div><button id="closeActivity">✕</button></div><p class="muted">Upiši trajanje i prosječni RPE. Aplikacija automatski računa opterećenje: minute × RPE.</p><label>Naziv aktivnosti<input id="actName" placeholder="npr. Utrka 5,5 km"></label><div class="grid2"><label>Vrsta<select id="actType"><option>Trčanje</option><option>Natjecanje</option><option>Bicikl</option><option>Plivanje</option><option>Hodanje</option><option>Mobility</option><option>Drugo</option></select></label><label>Datum<input id="actDate" type="date" value="'+date+'"></label><label>Trajanje (min)<input id="actMins" type="number" min="1" placeholder="npr. 30"></label><label>RPE<input id="actRpe" type="number" min="1" max="10" step=".5" placeholder="npr. 8"></label><label>Udaljenost (km)<input id="actKm" type="number" min="0" step=".1" placeholder="opcionalno"></label><label>Planirano<select id="actPlanned"><option value="true">Da</option><option value="false">Ne</option></select></label><label>Zamjenjuje današnji plan<select id="actReplace"><option value="false">Ne</option><option value="true">Da</option></select></label></div><div id="actLoad" class="card"><b>Opterećenje: — AU</b><p class="muted">Unesi trajanje i RPE.</p></div><button class="primary" id="saveActivity" style="width:100%">SPREMI AKTIVNOST</button>';
   $('modal').classList.remove('hidden');
   $('closeActivity').onclick=()=>$('modal').classList.add('hidden');
   const calc=()=>{const v=activityLoad({mins:+$('actMins').value,rpe:+$('actRpe').value});$('actLoad').innerHTML='<b>Opterećenje: '+(v||'—')+' AU</b><p class="muted">Minute × RPE · koristi se u ukupnom opterećenju.</p>';};
   $('actMins').oninput=calc;$('actRpe').oninput=calc;
   $('saveActivity').onclick=()=>{
-    const a={id:Date.now(),date:$('actDate').value,name:$('actName').value.trim()||'Moja aktivnost',type:$('actType').value,mins:+$('actMins').value||0,rpe:+$('actRpe').value||0,km:+$('actKm').value||null,planned:$('actPlanned').value==='true'};
+    const a={id:Date.now(),date:$('actDate').value,name:$('actName').value.trim()||'Moja aktivnost',type:$('actType').value,mins:+$('actMins').value||0,rpe:+$('actRpe').value||0,km:+$('actKm').value||null,planned:$('actPlanned').value==='true',replacesPlan:$('actReplace').value==='true'};
     if(!a.date||!a.mins||!a.rpe){toast('Unesi datum, trajanje i RPE');return;}
     S.activities.push(a);save();$('modal').classList.add('hidden');render(iso(sel));toast('✓ Aktivnost spremljena');
   };
@@ -121,7 +121,7 @@ function openActivityModal(date){
 function renderActivities(date){
   const arr=activitiesForDate(date);
   const total=arr.reduce((s,a)=>s+activityLoad(a),0);
-  $('activityList').innerHTML=arr.length?arr.map(a=>'<div class="exercise-row"><div><b>'+a.name+'</b><div class="muted">'+a.type+' · '+a.mins+' min · RPE '+a.rpe+(a.km?' · '+a.km+' km':'')+' · <strong>'+activityLoad(a)+' AU</strong>'+(a.planned?' · PLANIRANO':'')+'</div></div><button data-delact="'+a.id+'">✕</button></div>').join('')+'<p class="muted">Ukupno aktivnosti taj dan: <b>'+total+' AU</b></p>':'<p class="muted">Nema dodatnih aktivnosti za ovaj dan.</p>';
+  $('activityList').innerHTML=arr.length?arr.map(a=>'<div class="exercise-row"><div><b>'+a.name+'</b><div class="muted">'+a.type+' · '+a.mins+' min · RPE '+a.rpe+(a.km?' · '+a.km+' km':'')+' · <strong>'+activityLoad(a)+' AU</strong>'+(a.planned?' · PLANIRANO':'')+(a.replacesPlan?' · ZAMJENA PLANA':'')+'</div></div><button data-delact="'+a.id+'">✕</button></div>').join('')+'<p class="muted">Ukupno aktivnosti taj dan: <b>'+total+' AU</b></p>':'<p class="muted">Nema dodatnih aktivnosti za ovaj dan.</p>';
   document.querySelectorAll('[data-delact]').forEach(b=>b.onclick=()=>{S.activities=S.activities.filter(a=>String(a.id)!==String(b.dataset.delact));save();render(iso(sel));toast('Aktivnost obrisana');});
 }
 function info(s){
@@ -305,12 +305,12 @@ function trainingLoadStatus(){
   const prev=[];
   for(let w=1;w<info(iso(sel)).w;w++)if(loads[w])prev.push(loads[w]);
   const baseline=prev.length?prev.slice(-4).reduce((a,b)=>a+b,0)/Math.min(4,prev.length):null;
-  if(!baseline)return {level:'unknown',label:'NEMA BASELINE',current,baseline:null,note:'Nakon nekoliko tjedana treninga aplikacija će moći procijeniti tempo rasta opterećenja.'};
+  if(!baseline)return {level:'unknown',label:'NEMA BASELINE',current,baseline:null,planned:plannedActivityLoadForWeek(info(iso(sel)).w),note:'Nakon nekoliko tjedana treninga aplikacija će moći procijeniti tempo rasta opterećenja.'};
   const planned=plannedActivityLoadForWeek(info(iso(sel)).w);
   const ratio=current/baseline;
-  if(ratio>=1.25)return {level:'high',label:'BRZ SKOK OPTEREĆENJA',current,baseline,note:'Tjedno opterećenje je ≥25% iznad prosjeka prethodnih tjedana. Razmotri smanjenje volumena.'};
-  if(ratio>=1.10)return {level:'moderate',label:'POVEĆANO OPTEREĆENJE',current,baseline,note:'Opterećenje raste brže od uobičajenog. Prati readiness i RPE.'};
-  return {level:'normal',label:'NORMALNO OPTEREĆENJE',current,baseline,note:'Opterećenje je u prihvatljivom rasponu u odnosu na dosadašnji trening.'};
+  if(ratio>=1.25)return {level:'high',label:'BRZ SKOK OPTEREĆENJA',current,baseline,planned,note:'Tjedno opterećenje je ≥25% iznad prosjeka prethodnih tjedana. Razmotri smanjenje volumena.'};
+  if(ratio>=1.10)return {level:'moderate',label:'POVEĆANO OPTEREĆENJE',current,baseline,planned,note:'Opterećenje raste brže od uobičajenog. Prati readiness i RPE.'};
+  return {level:'normal',label:'NORMALNO OPTEREĆENJE',current,baseline,planned,note:'Opterećenje je u prihvatljivom rasponu u odnosu na dosadašnji trening.'};
 }
 function fatigueStatus(){
   const logs=S.logs||[];
@@ -380,7 +380,13 @@ function render(s){
   document.querySelectorAll('[data-d]').forEach(btn=>btn.onclick=()=>{const n=new Date(sel);n.setDate(n.getDate()+(Number(btn.dataset.d)-dow));render(iso(n));});
   $('addActivity').onclick=()=>openActivityModal(iso(sel));
   renderActivities(iso(sel));
-  if(x[1]==='REST'){
+  const dayActivities=activitiesForDate(iso(sel));
+  const planOverride=dayActivities.some(a=>a.replacesPlan);
+  if(planOverride){
+    const total=dayActivities.reduce((s,a)=>s+activityLoad(a),0);
+    $('body').innerHTML='<div class="card"><div class="eyebrow">MOJ PLAN · PRIORITET</div><h3>Vlastita aktivnost zamjenjuje planirani trening</h3><p class="muted">'+dayActivities.map(a=>a.name+' · '+a.type+' · '+a.mins+' min · RPE '+a.rpe+' · '+activityLoad(a)+' AU').join('<br>')+'</p><p><b>Ukupno planirano opterećenje: '+total+' AU</b></p><p class="muted">Aplikacija neće tražiti da odradiš originalni trening tog dana.</p></div>'+mobilityHtml(dow,w);
+    $('start').style.display='none';
+  }else if(x[1]==='REST'){
     $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>'+mobilityHtml(dow,w);
     $('start').style.display='none';
   }else if(iso(sel)==='2026-10-07'){
@@ -465,7 +471,7 @@ function renderProgress(){
 
   const ar=autoregulation('',S.week||1);
   const fatigueCard='<div class="card" id="fatigueCard"><div class="eyebrow">AUTOREGULACIJA</div><b>'+ar.label+'</b><p class="muted">'+ar.note+'</p></div>';
-$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';$('progress').insertAdjacentHTML('beforeend','<div class="card"><div class="eyebrow">TRAINING LOAD</div><b>'+tl.label+'</b><p>Ovaj tjedan: <strong>'+tl.current+'</strong> AU · Baseline: <strong>'+(tl.baseline?Math.round(tl.baseline):'—')+'</strong> AU</p><p class="muted">'+tl.note+'</p></div>');}
+$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';$('progress').insertAdjacentHTML('beforeend','<div class="card"><div class="eyebrow">TRAINING LOAD</div><b>'+tl.label+'</b><p>Ovaj tjedan odrađeno: <strong>'+tl.current+'</strong> AU · Planirano dodatno: <strong>'+(tl.planned||0)+'</strong> AU</p><p>Baseline: <strong>'+(tl.baseline?Math.round(tl.baseline):'—')+'</strong> AU</p><p class="muted">'+tl.note+'</p></div>');}
 function toast(t){$('toast').textContent=t;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),1800);}
 function setupNav(){
   document.querySelectorAll('.nav button').forEach(btn=>btn.onclick=()=>{
