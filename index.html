@@ -200,8 +200,8 @@ function weeklyLoadProfile(w){
 function paceToSec(v){const s=String(v||'').trim().replace(',',':');const m=s.match(/^(\d{1,2}):([0-5]\d)$/);return m?Number(m[1])*60+Number(m[2]):null;}
 function secToPace(sec){if(!sec||!isFinite(sec))return '—';const s=Math.max(0,Math.round(sec)),m=Math.floor(s/60),r=s%60;return m+':'+String(r).padStart(2,'0');}
 function goalRunTargetPace(){const target=paceToSec(S.goals?.runTarget5k),current=paceToSec(S.goals?.runCurrentPace);if(!target||!current)return null;return {target,current,gap:Math.max(0,current-target)};}
-function runTrainingPace(){const g=goalRunTargetPace();if(!g)return null;return Math.round(g.current-(g.gap*.44));}
-function runPaceForDistance(distance,w){const base=runTrainingPace();if(!base)return null;const km=Number(String(distance).match(/[\d.]+/)?.[0]||0.4);const factor=km<=.2?.94:km<=.4?.97:km<=.8?1:1.03;const phaseFactor=w>=6?.97:w>=3?.99:1;return Math.round(base*factor*phaseFactor);}
+function runTrainingPace(){const g=goalRunTargetPace();if(!g)return null;return Math.round(g.current-(g.gap*.4375));}
+function runPaceForDistance(distance,w){const base=runTrainingPace();if(!base)return null;const km=Number(String(distance).match(/[\d.]+/)?.[0]||0.4);const factor=km<=.2?.96:km<=.4?1:km<=.8?1.03:1.06;const phaseFactor=w>=6?.98:w>=3?.99:1;const ri=readinessImpact();const readinessFactor=ri.level==='red'?1.04:ri.level==='yellow'?1.02:1;return Math.round(base*factor*phaseFactor*readinessFactor);}
 function bmiValue(){const h=Number(S.profile?.height)/100,w=Number(S.profile?.weight);return h>0&&w>0?w/(h*h):null;}
 function bmiLabel(b){if(!b)return '—';if(b<18.5)return 'Underweight';if(b<25)return 'Healthy range';if(b<30)return 'Overweight';return 'High BMI';}
 function profileSummary(){const p=S.profile||{},bits=[];if(p.sex)bits.push(p.sex==='M'?'Muški':p.sex==='F'?'Ženski':'Drugo');if(p.height)bits.push(p.height+' cm');if(p.weight)bits.push(p.weight+' kg');return bits.join(' · ')||'Unesi osnovne podatke';}
@@ -265,8 +265,7 @@ function getWod(w,d){
     if(d===2)base=['16 min Easy Mixed','MIXED',[['Run','200 m'],['Row','8 cal'],['DB Snatch','6'],['Push-ups','8']]];
     if(d===5)base=['30 min Zone 2 Mixed','MIXED',[['Run','300 m'],['Bike','8 cal'],['Row','300 m'],['Rest','—']]];
   }
-  const moves=base[2].map(m=>{if(m[0]==='Run'){const p=runPaceForDistance(m[1],w);return p?[m[0],m[1]+' @ '+secToPace(p)+'/km']:m;}if(m[0]==='KB Swing'&&Number(S.goals?.kbSwing)>0)return [m[0],m[1]+' @ '+S.goals.kbSwing+' kg'];return m;});
-  return [base[0],base[1],moves];
+  return base;
 }
 
 const SUB={
