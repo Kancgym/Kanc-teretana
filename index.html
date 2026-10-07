@@ -337,7 +337,7 @@ function startWorkout(){
     document.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{b.textContent=b.textContent==='✓'?'○':'✓';b.closest('.set').classList.toggle('done');});
   }else{
     const z=getWod(q.w,q.dow);
-    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2><p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p><p class="muted">~ kg je orijentacijska startna težina prema tvom 1RM-u i trenutnom umoru. Cilj je RPE oko 7–8; ako tehnika ili tempo padaju, smanji težinu.</p><div class="card"><b>'+wodIntensityCap(q.w)+'</b><p class="muted">'+wodWeeklyNote(q.w)+'</p></div></div><div class="card">'+z[2].map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+wodPrescription(v[0],v[1],q.w)+'</div></div></div>';}).join('')+'</div><div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div>';
+    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2><p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p><p class="muted">~ kg je orijentacijska startna težina prema tvom 1RM-u i trenutnom umoru. Cilj je RPE oko 7–8; ako tehnika ili tempo padaju, smanji težinu.</p><div class="card"><b>'+wodIntensityCap(q.w)+'</b><p class="muted">'+wodWeeklyNote(q.w)+'</p></div></div><div class="card">'+z[2].map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+wodPrescription(v[0],v[1],q.w)+'</div></div></div>';}).join('')+'</div><div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div>'<div class="card"><label>WOD rezultat<input id="wodResultInput" type="text" placeholder="npr. 12:43 / 5 rounds + 8 reps"></label><label>WOD RPE<input id="wodRpeInput" type="number" min="1" max="10" step=".5" placeholder="1–10"></label></div>';
     $('wodStart').onclick=()=>{clearInterval(timer);const started=Date.now();$('wodStart').classList.add('hidden');$('wodStop').classList.remove('hidden');timer=setInterval(()=>{$('wodClock').textContent=new Date(Date.now()-started).toISOString().slice(14,19)},250);};
     $('wodStop').onclick=()=>{clearInterval(timer);$('wodStop').classList.add('hidden');$('wodStart').classList.remove('hidden');toast('⏱ Vrijeme zaustavljeno');};
   }
@@ -345,10 +345,16 @@ function startWorkout(){
 }
 function saveWorkout(){
   const q=info(iso(sel)),x=DAYS[q.dow];
+  const isWod=x[1].startsWith('WOD');
   const rows=[...document.querySelectorAll('[data-setrow]')];
   const sets=rows.map(row=>({exercise:row.querySelector('[data-w]').dataset.exercise,kg:+row.querySelector('[data-w]').value||null,reps:+row.querySelector('[data-r]').value||null,rpe:+row.querySelector('[data-rpe]').value||null,done:row.classList.contains('done')}));
+  let result=$('result').value,rpe=+$('rpe').value||null;
+  if(isWod){
+    result=$('wodResultInput')?.value||result;
+    rpe=+$('wodRpeInput')?.value||rpe;
+  }
   S.logs=S.logs.filter(l=>l.date!==iso(sel));
-  S.logs.push({date:iso(sel),week:q.w,type:x[1],session:x[0],rpe:+$('rpe').value||null,mins:+$('mins').value||null,result:$('result').value,note:$('note').value,sets:sets});
+  S.logs.push({date:iso(sel),week:q.w,type:x[1],session:x[0],rpe,mins:+$('mins').value||null,result,note:$('note').value,sets,wod:isWod});
   save();$('active').classList.add('hidden');toast('✓ Trening spremljen');renderLog();renderProgress();render(iso(sel));
 }
 function renderLog(){$('logs').innerHTML=S.logs.length?S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="ex"><b>'+dayDate(l.date).toLocaleDateString('hr-HR')+'</b> · '+l.type+'<br><span class="muted">'+l.session+' · '+(l.result||'bez scorea')+' · RPE '+(l.rpe||'—')+'</span></div>').join(''):'<p class="muted">Nema treninga.</p>';}
@@ -371,7 +377,7 @@ function setupNav(){
 }
 $('start').onclick=startWorkout;
 $('modify').onclick=modify;
-$('finish').onclick=()=>$('active').classList.add('hidden');
+$('finish').onclick=()=>saveWorkout();
 document.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>{
   clearInterval(timer);let end=Date.now()+Number(b.dataset.rest)*1000;
   timer=setInterval(()=>{const left=Math.max(0,end-Date.now());$('timer').textContent=new Date(left).toISOString().slice(14,19);if(!left){clearInterval(timer);toast('⏱ Odmor gotov');}},250);
