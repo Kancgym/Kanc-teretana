@@ -259,8 +259,12 @@ function autoregulation(ex,w){
   if(f.level==='high')return {status:'fatigue',label:f.label,note:f.note};
   return {status:'normal',label:f.label,note:f.note};
 }
+function rmForExercise(ex){
+  const key={"Back Squat":"squat","Deadlift":"deadlift","Bench Press":"bench","Strict Press":"press"}[ex]||ex;
+  return Number(S.rm[ex]||S.rm[key]||0);
+}
 function recommendation(ex,w){
-  const base=round25((S.rm[ex]||0)*scheme(ex,w));
+  const base=round25(rmForExercise(ex)*scheme(ex,w));
   if(!base)return 0;
   const ar=autoregulation(ex,w);
   let out=base;
