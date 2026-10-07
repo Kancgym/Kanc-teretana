@@ -40,6 +40,33 @@ function info(s){
   const days=Math.floor((dayDate(s)-dayDate(S.start))/86400000);
   return {w:Math.max(1,Math.min(8,Math.floor(days/7)+1)),dow:(dayDate(s).getDay()+6)%7};
 }
+function wodLoad(ex,reps,w){
+  const map={
+    'Power Clean':{anchor:'squat',pct:.62,unit:'barbell'},
+    'Clean & Jerk':{anchor:'squat',pct:.58,unit:'barbell'},
+    'Power Snatch':{anchor:'squat',pct:.45,unit:'barbell'},
+    'Thruster':{anchor:'squat',pct:.35,unit:'barbell'},
+    'DB Thruster':{anchor:'squat',pct:.18,unit:'each'},
+    'Wall Ball':{anchor:'squat',pct:.10,unit:'ball'},
+    'KB Swing':{anchor:'deadlift',pct:.22,unit:'kb'},
+    'DB Snatch':{anchor:'deadlift',pct:.16,unit:'each'}
+  };
+  const m=map[ex],rm=S.rm[m?.anchor];
+  if(!m||!rm)return null;
+  const r=Number(String(reps).match(/\d+/)?.[0]||10);
+  const repFactor=r<=5?1:r<=8?.92:r<=10?.86:r<=12?.80:r<=15?.74:.68;
+  const f=autoregulation('',w);
+  const fatigueFactor=f.status==='deload'?.88:f.status==='fatigue'?.90:f.status==='normal'&&fatigueStatus().level==='moderate'?.95:1;
+  let kg=round25(rm*m.pct*repFactor*fatigueFactor);
+  if(ex==='Wall Ball')kg=Math.max(2,Math.min(12,kg));
+  return {kg,unit:m.unit,status:f.status};
+}
+function wodPrescription(ex,reps,w){
+  const z=wodLoad(ex,reps,w);
+  if(!z)return '';
+  const tag=z.status==='deload'?' · DELOAD':z.status==='fatigue'?' · UMOR':fatigueStatus().level==='moderate'?' · OPREZ':'';
+  return ' · ~'+z.kg+' kg'+(z.unit==='each'?' / ruka':'')+tag;
+}
 function getWod(w,d){
   // WOD generator: svaki tjedan pokriva trčanje/engine + snagu/weightlifting + gymnastics + mixed energy systems.
   if(w===8){
@@ -209,7 +236,7 @@ function startWorkout(){
     document.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{b.textContent=b.textContent==='✓'?'○':'✓';b.closest('.set').classList.toggle('done');});
   }else{
     const z=getWod(q.w,q.dow);
-    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2><p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p></div><div class="card">'+z[2].map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+'</div></div></div>';}).join('')+'</div><div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div>';
+    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2><p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p><p class="muted">~ kg je orijentacijska startna težina prema tvom 1RM-u i trenutnom umoru. Cilj je RPE oko 7–8; ako tehnika ili tempo padaju, smanji težinu.</p></div><div class="card">'+z[2].map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+wodPrescription(v[0],v[1],q.w)+'</div></div></div>';}).join('')+'</div><div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div>';
     $('wodStart').onclick=()=>{clearInterval(timer);const started=Date.now();$('wodStart').classList.add('hidden');$('wodStop').classList.remove('hidden');timer=setInterval(()=>{$('wodClock').textContent=new Date(Date.now()-started).toISOString().slice(14,19)},250);};
     $('wodStop').onclick=()=>{clearInterval(timer);$('wodStop').classList.add('hidden');$('wodStart').classList.remove('hidden');toast('⏱ Vrijeme zaustavljeno');};
   }
