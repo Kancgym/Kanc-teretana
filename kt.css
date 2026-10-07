@@ -15,3 +15,48 @@ button{background:#081827;border-color:#173a55;color:#dcefff}button.primary,.pri
 .workout-head{background:linear-gradient(145deg,#061a2b,#040d17);border-color:#12476c}.set{background:#06121e;border-color:#12304a}.set.done{background:#062b2c;border-color:#0e8e9b}.section-icon{color:#16e0ff}.progress-ring{background:conic-gradient(#16e0ff calc(var(--p,0)*1%),#15334a 0)}.progress-ring:after{background:#06111c}
 input,textarea,select{background:#06121e!important;border-color:#173b56!important;color:#fff!important}
 @media(max-width:900px){main{padding:18px 14px 100px}.nav{position:sticky;top:0;bottom:auto;width:100%;height:auto;padding:8px 8px 10px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:rgba(3,14,25,.97);background-image:url("kt-logo.svg");background-size:120px auto;background-position:center 7px;padding-top:64px;border-right:0;border-bottom:1px solid #12304a}.nav button{justify-content:center;text-align:center;padding:8px 3px;font-size:9px;flex-direction:column;gap:2px}.nav button:before{font-size:15px}.nav:after{display:none}body>main:before{display:none}#visualHero h2{font-size:34px}}
+
+/* Modern Kanc Training UI */
+html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body,button,input,textarea,select{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3,h4,strong,.big{font-weight:750;letter-spacing:-.035em}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 18px;padding:6px 2px}
+.page-head h2{font-size:32px;margin:4px 0}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.goal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.goal-card{position:relative;overflow:hidden;min-height:205px;padding:18px;border:1px solid #163a57;border-radius:18px;background:linear-gradient(145deg,#0a1e31,#030d17);box-shadow:0 18px 45px #0005}
+.goal-card.goal-running{border-color:#1764a0}
+.goal-top{display:flex;justify-content:space-between}
+.goal-icon{display:inline-grid;place-items:center;width:34px;height:34px;margin-bottom:10px;border-radius:10px;background:#087cff22;color:#4bc4ff;font-weight:900}
+.goal-tag{font-size:9px;color:#6fbbe9;border:1px solid #174a70;border-radius:99px;padding:6px 8px}
+.goal-main{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px;margin-top:24px}
+.goal-main .muted{display:block;font-size:9px;letter-spacing:.14em}
+.goal-main strong{display:block;font-size:24px;margin-top:5px}
+.goal-arrow{color:#3ebcff;font-size:20px}
+.goal-bar{height:5px;background:#0a2034;border-radius:99px;overflow:hidden;margin-top:24px}
+.goal-bar span{display:block;height:100%;background:linear-gradient(90deg,#087cff,#20d8ff);border-radius:99px}
+.goal-meta{display:flex;justify-content:space-between;margin-top:9px;color:#87b7d9;font-size:10px}
+.goal-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:13px}
+.goal-mini-grid>div{padding:14px;border-radius:13px;background:#030f1bcc;border:1px solid #12324c}
+.goal-mini-grid span,.goal-mini-grid small{display:block;font-size:9px;letter-spacing:.12em}
+.goal-mini-grid strong{display:block;font-size:21px;margin:5px 0}
+.goal-mini-grid small{color:#7697b1;letter-spacing:.02em}
+.coach-card{border-color:#14527d!important;background:linear-gradient(145deg,#081c2f,#030d17)}
+.coach-dot{width:9px;height:9px;border-radius:50%;background:#19d7ff;box-shadow:0 0 16px #19d7ff}
+.coach-panel{padding:14px;border-radius:13px;background:#020c1699;border:1px solid #12334d}
+.coach-panel p{margin:0;line-height:1.55;color:#c3d8e8}
+.coach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.coach-grid>div{padding:11px;border:1px solid #173a55;border-radius:11px;background:#061523}
+.coach-grid span{display:block;font-size:9px;letter-spacing:.12em}
+.coach-grid strong{display:block;margin-top:4px;font-size:18px}
+.profile-grid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:10px}
+.profile-main{display:flex;align-items:center;gap:14px}
+.profile-avatar{display:grid;place-items:center;width:62px;height:62px;border-radius:16px;background:linear-gradient(145deg,#dfefff,#1c344b 48%,#087cff);color:#02101d;font-size:21px;font-weight:900}
+.metric-card{display:flex;flex-direction:column;justify-content:center;min-height:92px}
+.metric-card .muted{font-size:9px;letter-spacing:.12em}.metric-card strong{font-size:28px;margin:4px 0}.metric-card small{font-size:10px;color:#6f91aa}
+#profile label,#goals label{display:block;color:#9db5c9;font-size:11px;font-weight:650}
+.nav button[data-p="goals"]:before{content:"◎"}
+.nav button[data-p="profile"]:before{content:"◉"}
+@media(max-width:1050px){.goal-grid{grid-template-columns:1fr 1fr}.profile-grid{grid-template-columns:1.5fr 1fr 1fr}}
+@media(max-width:900px){.goal-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:1fr 1fr}.profile-main{grid-column:span 2}.nav{display:flex!important;overflow-x:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav button{flex:0 0 76px;min-width:76px}}
+@media(max-width:560px){.goal-mini-grid,.coach-grid{grid-template-columns:1fr}.profile-grid{grid-template-columns:1fr 1fr}}
