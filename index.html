@@ -25,7 +25,7 @@ button,.pill{border-radius:12px}
 <div class="row"><div><div class="eyebrow">KANC TRAINING</div><div class="big" id="title"></div></div><span class="pill" id="phase"></span></div>
 <nav class="nav"><button data-p="today" class="on">Danas</button><button data-p="program">Program</button><button data-p="log">Logbook</button><button data-p="progress">Progress</button><button data-p="settings">Postavke</button></nav>
 <section id="today"><div class="card" id="visualHero"><div class="readiness-hero"><div><div class="eyebrow">KANC TRAINING</div><h2 style="margin:.25rem 0">Train smart. Move strong.</h2><p class="muted" style="margin:0">Strength · Engine · Conditioning · Recovery</p></div><div class="section-icon">⚡</div></div></div><div class="card"><div class="row"><div><b id="date"></b><div class="muted" id="week"></div></div></div><div class="cal" id="cal" style="margin-top:10px"></div></div><div class="daybar" id="days"></div><div class="card"><div class="eyebrow" id="type"></div><h2 id="session"></h2><p class="muted" id="focus"></p><div id="body"></div><div class="grid2" style="margin-top:12px"><button id="modify">🔄 Promijeni</button><button class="primary" id="start">▶ START WORKOUT</button></div></div>
-<div class="card hidden" id="active"><div class="row"><h2 id="activeTitle"></h2><button id="finish">Završi</button></div><div id="activeBody"></div><div class="ex"><div class="eyebrow">ODMOR</div><div class="timer" id="timer">02:00</div><div class="grid2"><button data-rest="60">1:00</button><button data-rest="120">2:00</button></div></div></div>
+<div class="card hidden" id="active"><div class="row"><h2 id="activeTitle"></h2><div class="row"><button id="exitWorkout">← Izađi</button><button id="finish">✓ Završi</button></div></div><div id="activeBody"></div><div class="ex"><div class="eyebrow">ODMOR</div><div class="timer" id="timer">02:00</div><div class="grid2"><button data-rest="60">1:00</button><button data-rest="120">2:00</button></div></div></div>
 <div class="card"><div class="eyebrow">REZULTAT</div><div class="grid2"><label>RPE<input id="rpe" type="number" min="1" max="10" step=".5" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Min<input id="mins" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label></div><textarea id="result" placeholder="WOD score / rezultat" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></textarea><textarea id="note" placeholder="Bilješka" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></textarea><button class="primary" id="save" style="width:100%;margin-top:8px">✓ SPREMI TRENING</button></div></section>
 <section id="program" class="hidden"><div id="weeks"></div></section><section id="log" class="hidden"><div class="card"><div class="row"><h2>Logbook</h2><button id="clear">Obriši</button></div><div id="logs"></div></div></section>
 <section id="progress" class="hidden"><div class="card"><div class="eyebrow">PERFORMANCE</div><p class="muted">Tvoj napredak kroz snagu, kondiciju, readiness i training load.</p></div><div class="grid2"><div class="card"><small>SESSIONS</small><h2 id="ns">0</h2></div><div class="card"><small>WOD</small><h2 id="nw">0</h2></div><div class="card"><small>PR-ovi</small><h2 id="npr">0</h2></div><div class="card"><small>SQUAT 1RM</small><h2 id="sq">—</h2></div></div><div class="card"><b>Program completion</b><p id="completion"></p></div></section>
@@ -402,6 +402,14 @@ function setupNav(){
 }
 $('start').onclick=startWorkout;
 $('modify').onclick=modify;
+$('exitWorkout').onclick=()=>{
+  clearInterval(timer);
+  timer=null;
+  $('active').classList.add('hidden');
+  $('start').style.display='block';
+  render(iso(sel));
+  toast('↩️ Izašao si iz treninga — trening nije spremljen');
+};
 $('finish').onclick=()=>saveWorkout();
 document.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>{
   clearInterval(timer);let end=Date.now()+Number(b.dataset.rest)*1000;
