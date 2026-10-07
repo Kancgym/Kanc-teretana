@@ -64,3 +64,11 @@ input,textarea,select{background:#06121e!important;border-color:#173b56!importan
 }
 
 .nav button[data-p="profile"]:before{content:"◉"}
+
+/* Modern mobile Kanc Training UI */
+html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body,button,input,textarea,select{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.goal-grid{display:grid;grid-template-columns:1fr;gap:9px}.goal-card{min-height:180px;padding:15px}.goal-main strong{font-size:22px}.goal-mini-grid{grid-template-columns:1fr!important}
+.profile-grid{grid-template-columns:1fr 1fr!important}.profile-main{grid-column:span 2}.metric-card strong{font-size:25px}
+.coach-grid{grid-template-columns:1fr!important}.page-head h2{font-size:26px}
+.nav{display:flex!important;overflow-x:auto;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}.nav button{flex:0 0 76px;min-width:76px}
