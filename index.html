@@ -14,7 +14,7 @@
 const DAYS=[
   ['PON','WOD 1','Mixed conditioning'],
   ['UTO','STRENGTH A','Squat + press'],
-  ['SRI','1RM TEST','Projected 1RM testing'],
+  ['SRI','WOD 2','Olympic lifting + engine'],
   ['ČET','REST','Recovery'],
   ['PET','STRENGTH B','Deadlift + pull'],
   ['SUB','WOD 3','Aerobic mixed modal'],
@@ -41,20 +41,25 @@ function info(s){
   return {w:Math.max(1,Math.min(8,Math.floor(days/7)+1)),dow:(dayDate(s).getDay()+6)%7};
 }
 function getWod(w,d){
-  if(w===8)return ['Benchmark 10 min AMRAP','AMRAP',[['Row','10 cal'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]];
+  // WOD generator: svaki tjedan pokriva trčanje/engine + snagu/weightlifting + gymnastics + mixed energy systems.
+  if(w===8){
+    if(d===0)return ['Benchmark 12 min AMRAP','AMRAP',[['Run','400 m'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]];
+    if(d===2)return ['Benchmark 5 Rounds','ROUNDS',[['Run','400 m'],['Power Clean','5'],['Box Jump','8'],['Push-ups','10']]];
+    return ['Benchmark 20 min Mixed','MIXED',[['Run','800 m'],['Bike','15 cal'],['Wall Ball','20'],['Toes-to-Bar','10']]];
+  }
   if(w>=6){
-    if(d===0)return ['8 min AMRAP','AMRAP',[['Power Snatch','8'],['Burpees','10'],['Box Jump','12']]];
-    if(d===2)return ['For Time - 16 min cap','FOR TIME',[['Run','800 m'],['Thruster','30'],['Pull-up','20'],['Run','400 m']]];
-    return ['30 min EMOM','EMOM',[['Bike','12 cal'],['KB Swing','10'],['Burpees','8'],['Rest','—']]];
+    if(d===0)return ['10 min AMRAP','AMRAP',[['Run','200 m'],['Power Snatch','6'],['Burpees','8'],['Box Jump','10']]];
+    if(d===2)return ['For Time - 18 min cap','FOR TIME',[['Run','800 m'],['Thruster','20'],['Pull-up','15'],['Run','400 m'],['KB Swing','20']]];
+    return ['30 min EMOM','EMOM',[['Bike','12 cal'],['Run','200 m'],['KB Swing','12'],['Burpees','8'],['Rest','—']]];
   }
   if(w>=3){
-    if(d===0)return ['10 min AMRAP','AMRAP',[['Bike','12 cal'],['Toes-to-Bar','10'],['DB Thruster','10'],['Burpees','8']]];
-    if(d===2)return ['EMOM 18 min','EMOM',[['Row','10 cal'],['Clean & Jerk','6'],['Pull-up','10']]];
-    return ['30 min Mixed','MIXED',[['Row','500 m'],['Run','400 m'],['Wall Ball','20'],['KB Swing','15']]];
+    if(d===0)return ['12 min AMRAP','AMRAP',[['Run','300 m'],['DB Thruster','10'],['Toes-to-Bar','10'],['Burpees','8']]];
+    if(d===2)return ['EMOM 20 min','EMOM',[['Run','200 m'],['Clean & Jerk','5'],['Pull-up','8'],['Row','10 cal']]];
+    return ['30 min Mixed','MIXED',[['Run','400 m'],['Row','500 m'],['Wall Ball','15'],['KB Swing','15'],['Bike','10 cal']]];
   }
-  if(d===0)return ['12 min AMRAP','AMRAP',[['Row','10 cal'],['Burpees','10'],['KB Swing','12'],['Pull-up','8']]];
-  if(d===2)return ['5 Rounds','ROUNDS',[['Row','250 m'],['Power Clean','6'],['Box Jump','8'],['Push-ups','10']]];
-  return ['24 min AMRAP','AMRAP',[['Run','400 m'],['Wall Ball','15'],['DB Snatch','12'],['Sit-up','10']]];
+  if(d===0)return ['14 min AMRAP','AMRAP',[['Run','400 m'],['Burpees','8'],['KB Swing','12'],['Pull-up','8']]];
+  if(d===2)return ['5 Rounds','ROUNDS',[['Run','300 m'],['Power Clean','5'],['Box Jump','8'],['Push-ups','10']]];
+  return ['24 min AMRAP','AMRAP',[['Run','400 m'],['Bike','10 cal'],['Wall Ball','15'],['DB Snatch','10'],['Sit-up','10']]];
 }
 const SUB={
   'Row':[['Run','400 m'],['Bike','12 cal'],['SkiErg','10 cal']],
@@ -144,15 +149,15 @@ function render(s){
   $('phase').textContent=PHASE[w-1];
   $('date').textContent=sel.toLocaleDateString('hr-HR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   $('week').textContent='Tjedan '+w+' · '+PHASE[w-1];
-  $('type').textContent=x[1];
-  $('session').textContent=x[0]+' · '+x[1];
-  $('focus').textContent=x[2];
+  $('type').textContent=sel==='2026-10-07'?'1RM TEST':x[1];
+  $('session').textContent=sel==='2026-10-07'?'1RM TEST · Projected 1RM testing':x[0]+' · '+x[1];
+  $('focus').textContent=sel==='2026-10-07'?'Strength testing':x[2];
   $('days').innerHTML=DAYS.map((z,i)=>'<button class="'+(i===dow?'sel':'')+'" data-d="'+i+'">'+z[0]+'<br><small>'+z[1]+'</small></button>').join('');
   document.querySelectorAll('[data-d]').forEach(btn=>btn.onclick=()=>{const n=new Date(sel);n.setDate(n.getDate()+(Number(btn.dataset.d)-dow));render(iso(n));});
   if(x[1]==='REST'){
     $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>';
     $('start').style.display='none';
-  }else if(x[1]==='1RM TEST'){
+  }else if(sel==='2026-10-07'){
     $('body').innerHTML='<div class="card"><b>Projektirani 1RM test</b><p class="muted">Danas testiramo Back Squat, Deadlift, Bench Press i Strict Press. Za svaku vježbu dođi do približno 90% očekivanog maksimuma i napravi maksimalan broj tehnički kvalitetnih ponavljanja.</p><p class="muted">Preporuka: 2–6 ponavljanja. Nakon svake vježbe upiši rezultat u Postavke → Projektirani 1RM.</p></div><div class="grid2"><div class="card"><b>1</b><br>Back Squat</div><div class="card"><b>2</b><br>Deadlift</div><div class="card"><b>3</b><br>Bench Press</div><div class="card"><b>4</b><br>Strict Press</div></div>';
     $('start').style.display='block';
   }else if(x[1].startsWith('STRENGTH')){
@@ -192,7 +197,7 @@ function startWorkout(){
   const q=info(iso(sel)),x=DAYS[q.dow];
   $('active').classList.remove('hidden');
   $('activeTitle').textContent=x[1];
-  if(x[1]==='1RM TEST'){
+  if(sel==='2026-10-07'){
     const ex=[['squat','Back Squat'],['deadlift','Deadlift'],['bench','Bench Press'],['press','Strict Press']];
     $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">PROJECTED 1RM TEST</div><h2>Današnji test</h2><p class="muted">Za svaku vježbu: zagrijavanje → približno 90% očekivanog maksimuma → maksimalan broj tehnički kvalitetnih ponavljanja. Ne forsiraj tehniku.</p></div>'+
       ex.map(e=>'<div class="exercise-row"><div><b>'+e[1]+'</b><div class="muted">Rezultat unosiš nakon testa u Postavke → Projektirani 1RM</div></div><span class="pill">TEST</span></div>').join('')+
