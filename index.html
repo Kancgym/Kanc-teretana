@@ -74,6 +74,15 @@ function scheme(ex,w){
   const map=primary[ex];
   return map?map[w-1]:null;
 }
+function projected1RM(kg,reps){
+  if(!kg||!reps||reps<1||reps>10)return null;
+  const epley=kg*(1+reps/30);
+  const brzycki=kg*36/(37-reps);
+  const nscaPct={1:1,2:.95,3:.93,4:.90,5:.87,6:.85,7:.83,8:.80,9:.77,10:.75}[reps];
+  const nsca=kg/nscaPct;
+  const working=round25(Math.min(epley,brzycki));
+  return {epley,brzycki,nsca,working};
+}
 function round25(x){return Math.round(x/2.5)*2.5}
 function lastExercise(ex){
   for(let i=S.logs.length-1;i>=0;i--){
@@ -213,6 +222,17 @@ $('saveRM').onclick=()=>{['squat','deadlift','bench','press'].forEach(k=>S.rm[k]
 $('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='kanc-training-backup.json';a.click();};
 $('imp').onclick=()=>$('file').click();
 $('file').onchange=e=>{const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render(iso(sel));toast('Backup uvezen');}catch(err){toast('Neispravan backup');}};r.readAsText(e.target.files[0]);};
-setupNav();
+document.getElementById('calcTest').onclick=()=>{
+  const kg=+document.getElementById('testKg').value,reps=+document.getElementById('testReps').value,ex=document.getElementById('testEx').value;
+  const names={squat:'Back Squat',deadlift:'Deadlift',bench:'Bench Press',press:'Strict Press'};
+  const z=projected1RM(kg,reps);
+  if(!z){document.getElementById('testResult').innerHTML='<p class="muted">Unesi kg i 1–10 kvalitetnih ponavljanja.</p>';return;}
+  S.rm[ex]=z.working;
+  S.projected=S.projected||{};
+  S.projected[ex]={date:iso(new Date()),kg,reps,epley:z.epley,brzycki:z.brzycki,nsca:z.nsca,working:z.working};
+  save();
+  document.getElementById('testResult').innerHTML='<div class="card"><b>'+names[ex]+'</b><h2>'+z.working+' kg</h2><p>Epley: '+z.epley.toFixed(1)+' kg<br>Brzycki: '+z.brzycki.toFixed(1)+' kg<br>NSCA tablica: '+z.nsca.toFixed(1)+' kg</p><p class="muted">Za programiranje je spremljeno konzervativnih '+z.working+' kg kao radni 1RM.</p></div>';
+  render(iso(sel));
+};setupNav();
 render(iso(sel));
 </script></body></html>
