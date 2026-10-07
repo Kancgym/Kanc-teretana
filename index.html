@@ -64,6 +64,44 @@ const SUB={
   'Burpees':[['Bike','10 cal'],['Run','100 m']],
   'Wall Ball':[['Goblet Squat','15'],['DB Thruster','10']]
 };
+function scheme(ex,w){
+  const primary={
+    'Back Squat':[.70,.725,.75,.775,.65,.80,.825,.85],
+    'Deadlift':[.70,.725,.75,.775,.65,.80,.85,.875],
+    'Bench Press':[.70,.725,.75,.775,.65,.80,.825,.85],
+    'Strict Press':[.70,.725,.75,.775,.65,.80,.825,.85]
+  };
+  const map=primary[ex];
+  return map?map[w-1]:null;
+}
+function round25(x){return Math.round(x/2.5)*2.5}
+function lastExercise(ex){
+  for(let i=S.logs.length-1;i>=0;i--){
+    const sets=(S.logs[i].sets||[]).filter(s=>s.exercise===ex&&s.kg&&s.reps);
+    if(sets.length)return sets;
+  }
+  return [];
+}
+function recommendation(ex,w){
+  const rm=S.rm[ex==='Back Squat'?'squat':ex==='Deadlift'?'deadlift':ex==='Bench Press'?'bench':ex==='Strict Press'?'press':ex];
+  let base=rm&&scheme(ex,w)?round25(rm*scheme(ex,w)):null;
+  const prev=lastExercise(ex);
+  if(prev.length){
+    const rpes=prev.filter(s=>s.rpe).map(s=>+s.rpe);
+    const avg=rpes.length?rpes.reduce((a,b)=>a+b,0)/rpes.length:null;
+    const last=round25(prev[prev.length-1].kg);
+    if(!base)base=last;
+    if(avg!==null){
+      if(avg<=7.5)base+=2.5;
+      else if(avg>8.5)base-=2.5;
+    }
+  }
+  return base?Math.max(2.5,round25(base)):null;
+}
+function planLabel(ex,w){
+  const r=recommendation(ex,w);
+  return r?' · predloženo '+r+' kg':'';
+}
 function strength(d,w){
   const squat=w===1?'4×6':w===2?'4×6':w===3?'5×5':w===4?'5×4':w===5?'3×5':w===6?'5×4':w===7?'4×3':'3×3';
   const dead=w===1?'4×5':w===2?'4×5':w===3?'5×4':w===4?'5×4':w===5?'3×4':w===6?'5×3':w===7?'4×3':'3×2';
@@ -86,7 +124,7 @@ function render(s){
     $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>';
     $('start').style.display='none';
   }else if(x[1].startsWith('STRENGTH')){
-    $('body').innerHTML=strength(dow,w).map(e=>'<div class="ex"><b>'+e[0]+'</b><div class="muted">'+e[1]+'</div></div>').join('');
+    $('body').innerHTML='<div class="card"><b>Predložene težine</b><p class="muted">1RM + tjedni plan + prethodni RPE. Aplikacija predlaže, ti odlučuješ.</p></div>'+strength(dow,w).map(e=>'<div class="ex"><b>'+e[0]+'</b><div class="muted">'+e[1]+planLabel(e[0],w)+'</div></div>').join('');
     $('start').style.display='block';
   }else{
     const z=getWod(w,dow);
@@ -142,10 +180,11 @@ function startWorkout(){
 }
 function saveWorkout(){
   const q=info(iso(sel)),x=DAYS[q.dow];
-  const sets=[...document.querySelectorAll('[data-w]')].map((e,i)=>({kg:+e.value||null,reps:+document.querySelectorAll('[data-r]')[i].value||null,rpe:+document.querySelectorAll('[data-rpe]')[i].value||null,done:document.querySelectorAll('[data-ok]')[i].checked}));
+  const rows=[...document.querySelectorAll('[data-setrow]')];
+  const sets=rows.map(row=>({exercise:row.querySelector('[data-w]').dataset.exercise,kg:+row.querySelector('[data-w]').value||null,reps:+row.querySelector('[data-r]').value||null,rpe:+row.querySelector('[data-rpe]').value||null,done:row.classList.contains('done')}));
   S.logs=S.logs.filter(l=>l.date!==iso(sel));
   S.logs.push({date:iso(sel),week:q.w,type:x[1],session:x[0],rpe:+$('rpe').value||null,mins:+$('mins').value||null,result:$('result').value,note:$('note').value,sets:sets});
-  save();$('active').classList.add('hidden');toast('✓ Trening spremljen');renderLog();renderProgress();
+  save();$('active').classList.add('hidden');toast('✓ Trening spremljen');renderLog();renderProgress();render(iso(sel));
 }
 function renderLog(){$('logs').innerHTML=S.logs.length?S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="ex"><b>'+dayDate(l.date).toLocaleDateString('hr-HR')+'</b> · '+l.type+'<br><span class="muted">'+l.session+' · '+(l.result||'bez scorea')+' · RPE '+(l.rpe||'—')+'</span></div>').join(''):'<p class="muted">Nema treninga.</p>';}
 function renderProgress(){$('ns').textContent=S.logs.length;$('nw').textContent=S.logs.filter(l=>l.type.startsWith('WOD')).length;$('npr').textContent=S.prs||0;$('sq').textContent=S.rm.squat?S.rm.squat+' kg':'—';$('completion').textContent=Math.round(S.logs.length/40*100)+'% od planiranih 40 treninga.';}
