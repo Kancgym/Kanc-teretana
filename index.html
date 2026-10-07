@@ -24,7 +24,7 @@ button,.pill{border-radius:12px}
 </style></style><link rel="stylesheet" href="KANC TRAINING.css?v=1"><link rel="stylesheet" href="KANC TRAINING-mobile.css?v=1"><link rel="stylesheet" href="kt.css?v=2"><link rel="stylesheet" href="kt-mobile.css?v=2"></head><body><main>
 <div class="row"><div><div class="eyebrow">KANC TRAINING</div><div class="big" id="title"></div></div><span class="pill" id="phase"></span></div>
 <nav class="nav"><button data-p="today" class="on">Danas</button><button data-p="program">Program</button><button data-p="log">Logbook</button><button data-p="progress">Progress</button><button data-p="settings">Postavke</button></nav>
-<section id="today"><div class="card" id="visualHero"><div class="readiness-hero"><div><div class="eyebrow">KANC TRAINING</div><h2 style="margin:.25rem 0">Train smart. Move strong.</h2><p class="muted" style="margin:0">Strength · Engine · Conditioning · Recovery</p></div><div class="section-icon">⚡</div></div></div><div class="card"><div class="row"><div><b id="date"></b><div class="muted" id="week"></div></div></div><div class="cal" id="cal" style="margin-top:10px"></div></div><div class="daybar" id="days"></div><div class="card"><div class="eyebrow" id="type"></div><h2 id="session"></h2><p class="muted" id="focus"></p><div id="body"></div><div class="grid2" style="margin-top:12px"><button id="modify">🔄 Promijeni</button><button class="primary" id="start">▶ START WORKOUT</button></div></div>
+<section id="today"><div class="card" id="visualHero"><div class="readiness-hero"><div><div class="eyebrow">KANC TRAINING</div><h2 style="margin:.25rem 0">Train smart. Move strong.</h2><p class="muted" style="margin:0">Strength · Engine · Conditioning · Recovery</p></div><div class="section-icon">⚡</div></div></div><div class="card"><div class="row"><div><b id="date"></b><div class="muted" id="week"></div></div></div><div class="cal" id="cal" style="margin-top:10px"></div></div><div class="daybar" id="days"></div><div class="card"><div class="row"><div><div class="eyebrow">DODATNE AKTIVNOSTI</div><b>Moje aktivnosti</b></div><button id="addActivity">＋ Dodaj</button></div><div id="activityList" style="margin-top:8px"></div></div><div class="card"><div class="eyebrow" id="type"></div><h2 id="session"></h2><p class="muted" id="focus"></p><div id="body"></div><div class="grid2" style="margin-top:12px"><button id="modify">🔄 Promijeni</button><button class="primary" id="start">▶ START WORKOUT</button></div></div>
 <div class="card hidden" id="active"><div class="row"><h2 id="activeTitle"></h2><div class="row"><button id="exitWorkout">← Izađi</button><button id="finish">✓ Završi</button></div></div><div id="activeBody"></div><div class="ex"><div class="eyebrow">ODMOR</div><div class="timer" id="timer">02:00</div><div class="grid2"><button data-rest="60">1:00</button><button data-rest="120">2:00</button></div></div></div>
 <div class="card"><div class="eyebrow">REZULTAT</div><div class="grid2"><label>RPE<input id="rpe" type="number" min="1" max="10" step=".5" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label><label>Min<input id="mins" type="number" style="width:100%;margin-top:5px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></label></div><textarea id="result" placeholder="WOD score / rezultat" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></textarea><textarea id="note" placeholder="Bilješka" style="width:100%;margin-top:8px;background:#101010;color:#fff;border:1px solid #333;border-radius:8px;padding:10px"></textarea><button class="primary" id="save" style="width:100%;margin-top:8px">✓ SPREMI TRENING</button></div></section>
 <section id="program" class="hidden"><div id="weeks"></div></section><section id="log" class="hidden"><div class="card"><div class="row"><h2>Logbook</h2><button id="clear">Obriši</button></div><div id="logs"></div></div></section>
@@ -51,6 +51,8 @@ if(!Array.isArray(S.logs))S.logs=[];
 if(!S.rm||typeof S.rm!=='object')S.rm={};
 if(!S.mods||typeof S.mods!=='object')S.mods={};
 if(!S.readiness||typeof S.readiness!=='object')S.readiness={};
+if(!Array.isArray(S.activities))S.activities=[];
+if(!S.drafts||typeof S.drafts!=='object')S.drafts={};
 if(!S.start||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(S.start))S.start='2026-10-05';
 let sel=new Date();
 let timer=null;
@@ -58,6 +60,70 @@ const $=id=>document.getElementById(id);
 const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
 const dayDate=s=>new Date(s+'T12:00');
 function save(){try{localStorage.setItem('kanc_training',JSON.stringify(S));}catch(e){}}
+function activityLoad(a){
+  const mins=Number(a?.mins)||0,rpe=Number(a?.rpe)||0;
+  return mins&&rpe?Math.round(mins*rpe):0;
+}
+function activitiesForDate(date){
+  return (S.activities||[]).filter(a=>a.date===date);
+}
+function plannedActivityLoadForWeek(w){
+  return (S.activities||[]).filter(a=>a.planned!==false&&info(a.date).w===w).reduce((sum,a)=>sum+activityLoad(a),0);
+}
+function mobilityPlan(d,w){
+  if(d===1)return [['Knee to Wall','2×8/strana'],['90/90 Hip Switch','2×8/strana'],['Adductor Rockback','2×8/strana'],['Open Book','1×8/strana']];
+  if(d===4)return [['Hip Flexor Stretch','2×30 s/strana'],['Hamstring Floss','2×8/strana'],['Lat Stretch','2×30 s/strana'],['T-spine Rotation','1×8/strana']];
+  if(d===6)return [['Ankle Rocks','2×10/strana'],['World’s Greatest Stretch','1×5/strana'],['90/90 Hip Switch','2×8/strana'],['Shoulder CARs','1×5/strana']];
+  if(d===0||d===2)return [['Ankle Rocks','2×10/strana'],['90/90 Hip Switch','2×8/strana'],['T-spine Rotation','1×8/strana'],['Scapular Push-up','2×8']];
+  return [['Easy Walk + Nasal Breathing','3 min'],['90/90 Hip Switch','2×8/strana'],['Hip Flexor Stretch','2×30 s/strana'],['Open Book','1×8/strana']];
+}
+function mobilityHtml(d,w){
+  return '<div class="card"><div class="eyebrow">MOBILITY · 6–10 MIN</div><b>Priprema za današnji trening</b><div style="margin-top:8px">'+mobilityPlan(d,w).map(m=>'<div class="exercise-row"><div><b>'+m[0]+'</b><div class="muted">'+m[1]+'</div></div><span class="pill">MOB</span></div>').join('')+'</div></div>';
+}
+function saveDraft(){
+  const date=iso(sel);
+  const rows=[...document.querySelectorAll('[data-setrow]')];
+  const draft={date,sets:rows.map(row=>({exercise:row.querySelector('[data-w]')?.dataset.exercise,kg:row.querySelector('[data-w]')?.value||'',reps:row.querySelector('[data-r]')?.value||'',rpe:row.querySelector('[data-rpe]')?.value||'',done:row.classList.contains('done')})),rpe:$('rpe')?.value||'',mins:$('mins')?.value||'',result:$('result')?.value||'',note:$('note')?.value||''};
+  if($('wodResultInput'))draft.wodResult=$('wodResultInput').value||'';
+  if($('wodRpeInput'))draft.wodRpe=$('wodRpeInput').value||'';
+  S.drafts[date]=draft;save();
+}
+function restoreDraft(){
+  const d=S.drafts[iso(sel)];
+  if(!d)return;
+  (d.sets||[]).forEach((s,i)=>{
+    const row=document.querySelectorAll('[data-setrow]')[i];
+    if(!row)return;
+    const w=row.querySelector('[data-w]'),r=row.querySelector('[data-r]'),rp=row.querySelector('[data-rpe]');
+    if(w)w.value=s.kg||'';if(r)r.value=s.reps||'';if(rp)rp.value=s.rpe||'';
+    if(s.done){row.classList.add('done');const b=row.querySelector('[data-ok]');if(b)b.textContent='✓';}
+  });
+  if($('rpe'))$('rpe').value=d.rpe||'';
+  if($('mins'))$('mins').value=d.mins||'';
+  if($('result'))$('result').value=d.result||'';
+  if($('note'))$('note').value=d.note||'';
+  if($('wodResultInput'))$('wodResultInput').value=d.wodResult||'';
+  if($('wodRpeInput'))$('wodRpeInput').value=d.wodRpe||'';
+  toast('↩️ Nastavljamo nedovršeni trening');
+}
+function openActivityModal(date){
+  $('sheet').innerHTML='<div class="row"><div><div class="eyebrow">MOJA AKTIVNOST</div><h2>Dodaj / planiraj aktivnost</h2></div><button id="closeActivity">✕</button></div><p class="muted">Upiši trajanje i prosječni RPE. Aplikacija automatski računa opterećenje: minute × RPE.</p><label>Naziv aktivnosti<input id="actName" placeholder="npr. Utrka 5,5 km"></label><div class="grid2"><label>Vrsta<select id="actType"><option>Trčanje</option><option>Natjecanje</option><option>Bicikl</option><option>Plivanje</option><option>Hodanje</option><option>Mobility</option><option>Drugo</option></select></label><label>Datum<input id="actDate" type="date" value="'+date+'"></label><label>Trajanje (min)<input id="actMins" type="number" min="1" placeholder="npr. 30"></label><label>RPE<input id="actRpe" type="number" min="1" max="10" step=".5" placeholder="npr. 8"></label><label>Udaljenost (km)<input id="actKm" type="number" min="0" step=".1" placeholder="opcionalno"></label><label>Planirano<select id="actPlanned"><option value="true">Da</option><option value="false">Ne</option></select></label></div><div id="actLoad" class="card"><b>Opterećenje: — AU</b><p class="muted">Unesi trajanje i RPE.</p></div><button class="primary" id="saveActivity" style="width:100%">SPREMI AKTIVNOST</button>';
+  $('modal').classList.remove('hidden');
+  $('closeActivity').onclick=()=>$('modal').classList.add('hidden');
+  const calc=()=>{const v=activityLoad({mins:+$('actMins').value,rpe:+$('actRpe').value});$('actLoad').innerHTML='<b>Opterećenje: '+(v||'—')+' AU</b><p class="muted">Minute × RPE · koristi se u ukupnom opterećenju.</p>';};
+  $('actMins').oninput=calc;$('actRpe').oninput=calc;
+  $('saveActivity').onclick=()=>{
+    const a={id:Date.now(),date:$('actDate').value,name:$('actName').value.trim()||'Moja aktivnost',type:$('actType').value,mins:+$('actMins').value||0,rpe:+$('actRpe').value||0,km:+$('actKm').value||null,planned:$('actPlanned').value==='true'};
+    if(!a.date||!a.mins||!a.rpe){toast('Unesi datum, trajanje i RPE');return;}
+    S.activities.push(a);save();$('modal').classList.add('hidden');render(iso(sel));toast('✓ Aktivnost spremljena');
+  };
+}
+function renderActivities(date){
+  const arr=activitiesForDate(date);
+  const total=arr.reduce((s,a)=>s+activityLoad(a),0);
+  $('activityList').innerHTML=arr.length?arr.map(a=>'<div class="exercise-row"><div><b>'+a.name+'</b><div class="muted">'+a.type+' · '+a.mins+' min · RPE '+a.rpe+(a.km?' · '+a.km+' km':'')+' · <strong>'+activityLoad(a)+' AU</strong>'+(a.planned?' · PLANIRANO':'')+'</div></div><button data-delact="'+a.id+'">✕</button></div>').join('')+'<p class="muted">Ukupno aktivnosti taj dan: <b>'+total+' AU</b></p>':'<p class="muted">Nema dodatnih aktivnosti za ovaj dan.</p>';
+  document.querySelectorAll('[data-delact]').forEach(b=>b.onclick=()=>{S.activities=S.activities.filter(a=>String(a.id)!==String(b.dataset.delact));save();render(iso(sel));toast('Aktivnost obrisana');});
+}
 function info(s){
   const days=Math.floor((dayDate(s)-dayDate(S.start))/86400000);
   return {w:Math.max(1,Math.min(8,Math.floor(days/7)+1)),dow:(dayDate(s).getDay()+6)%7};
@@ -227,6 +293,10 @@ function weeklyLoads(){
     const w=l.week||info(l.date).w;
     out[w]=(out[w]||0)+sessionLoad(l);
   });
+  (S.activities||[]).filter(a=>a.planned===false).forEach(a=>{
+    const w=info(a.date).w;
+    out[w]=(out[w]||0)+activityLoad(a);
+  });
   return out;
 }
 function trainingLoadStatus(){
@@ -236,6 +306,7 @@ function trainingLoadStatus(){
   for(let w=1;w<info(iso(sel)).w;w++)if(loads[w])prev.push(loads[w]);
   const baseline=prev.length?prev.slice(-4).reduce((a,b)=>a+b,0)/Math.min(4,prev.length):null;
   if(!baseline)return {level:'unknown',label:'NEMA BASELINE',current,baseline:null,note:'Nakon nekoliko tjedana treninga aplikacija će moći procijeniti tempo rasta opterećenja.'};
+  const planned=plannedActivityLoadForWeek(info(iso(sel)).w);
   const ratio=current/baseline;
   if(ratio>=1.25)return {level:'high',label:'BRZ SKOK OPTEREĆENJA',current,baseline,note:'Tjedno opterećenje je ≥25% iznad prosjeka prethodnih tjedana. Razmotri smanjenje volumena.'};
   if(ratio>=1.10)return {level:'moderate',label:'POVEĆANO OPTEREĆENJE',current,baseline,note:'Opterećenje raste brže od uobičajenog. Prati readiness i RPE.'};
@@ -307,8 +378,10 @@ function render(s){
 
   $('days').innerHTML=DAYS.map((z,i)=>'<button class="'+(i===dow?'sel':'')+'" data-d="'+i+'">'+z[0]+'<br><small>'+z[1]+'</small></button>').join('');
   document.querySelectorAll('[data-d]').forEach(btn=>btn.onclick=()=>{const n=new Date(sel);n.setDate(n.getDate()+(Number(btn.dataset.d)-dow));render(iso(n));});
+  $('addActivity').onclick=()=>openActivityModal(iso(sel));
+  renderActivities(iso(sel));
   if(x[1]==='REST'){
-    $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>';
+    $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>'+mobilityHtml(dow,w);
     $('start').style.display='none';
   }else if(iso(sel)==='2026-10-07'){
     $('body').innerHTML='<div class="card"><b>Projektirani 1RM test</b><p class="muted">Danas testiramo Back Squat, Deadlift, Bench Press i Strict Press. Za svaku vježbu dođi do približno 90% očekivanog maksimuma i napravi maksimalan broj tehnički kvalitetnih ponavljanja.</p><p class="muted">Preporuka: 2–6 ponavljanja. Nakon svake vježbe upiši rezultat u Postavke → Projektirani 1RM.</p></div><div class="grid2"><div class="card"><b>1</b><br>Back Squat</div><div class="card"><b>2</b><br>Deadlift</div><div class="card"><b>3</b><br>Bench Press</div><div class="card"><b>4</b><br>Strict Press</div></div>';
@@ -366,6 +439,9 @@ function startWorkout(){
     $('wodStart').onclick=()=>{clearInterval(timer);const started=Date.now();$('wodStart').classList.add('hidden');$('wodStop').classList.remove('hidden');timer=setInterval(()=>{$('wodClock').textContent=new Date(Date.now()-started).toISOString().slice(14,19)},250);};
     $('wodStop').onclick=()=>{clearInterval(timer);$('wodStop').classList.add('hidden');$('wodStart').classList.remove('hidden');toast('⏱ Vrijeme zaustavljeno');};
   }
+  $('activeBody').insertAdjacentHTML('afterbegin',mobilityHtml(q.dow,q.w));
+  restoreDraft();
+  document.querySelectorAll('#activeBody input,#activeBody textarea, #rpe,#mins,#result,#note').forEach(el=>el.addEventListener('input',saveDraft));
   $('finish').textContent='✓ ZAVRŠI';
 }
 function saveWorkout(){
@@ -380,6 +456,7 @@ function saveWorkout(){
   }
   S.logs=S.logs.filter(l=>l.date!==iso(sel));
   S.logs.push({date:iso(sel),week:q.w,type:x[1],session:x[0],rpe,mins:+$('mins').value||null,result,note:$('note').value,sets,wod:isWod});
+  delete S.drafts[iso(sel)];
   save();$('active').classList.add('hidden');toast('✓ Trening spremljen');renderLog();renderProgress();render(iso(sel));
 }
 function renderLog(){$('logs').innerHTML=S.logs.length?S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>'<div class="ex"><b>'+dayDate(l.date).toLocaleDateString('hr-HR')+'</b> · '+l.type+'<br><span class="muted">'+l.session+' · '+(l.result||'bez scorea')+' · RPE '+(l.rpe||'—')+'</span></div>').join(''):'<p class="muted">Nema treninga.</p>';}
@@ -403,12 +480,13 @@ function setupNav(){
 $('start').onclick=startWorkout;
 $('modify').onclick=modify;
 $('exitWorkout').onclick=()=>{
+  saveDraft();
   clearInterval(timer);
   timer=null;
   $('active').classList.add('hidden');
   $('start').style.display='block';
   render(iso(sel));
-  toast('↩️ Izašao si iz treninga — trening nije spremljen');
+  toast('↩️ Izašao si — nedovršeni trening je sačuvan kao draft');
 };
 $('finish').onclick=()=>saveWorkout();
 document.querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>{
