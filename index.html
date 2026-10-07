@@ -144,24 +144,14 @@ function wodWeeklyNote(w){
   return notes.length?notes.join(' · '):'Tjedni balans WOD-a je uredan.';
 }
 function wodIntensityCap(w){
-  const ri=readinessImpact(),comp=competitionRecoveryState(iso(sel));
-  if(comp.action==='rest')return 'POST-RACE RECOVERY · RPE 4–5';
-  if(comp.action==='recovery')return 'POST-RACE RECOVERY · RPE 5–6';
-  if(comp.action==='reduce')return 'POST-RACE REDUCED · RPE 6–7';
+  const ri=readinessImpact(),gate=wodRecoveryGate(iso(sel));
+  if(gate.action==='rest')return gate.label+' · RPE 4–5';
+  if(gate.action==='recovery')return gate.label+' · RPE 5–6';
+  if(gate.action==='reduce')return gate.label+' · RPE 6–7';
   if(w===5)return 'DELOAD · RPE 6–7';
   if(ri.level==='red')return 'LOW READINESS · RPE 6–7';
   if(ri.level==='yellow')return 'MODERATE · RPE 7–8';
   return 'NORMAL · RPE 7–9';
-}
-function competitionRecoveryState(date=iso(sel)){
-  const today=dayDate(date);
-  const comps=(S.activities||[]).filter(a=>a.planned===false&&a.type==='Natjecanje'&&a.date<=date).sort((a,b)=>a.date.localeCompare(b.date));
-  if(!comps.length)return {action:'none',days:null,note:''};
-  const last=comps[comps.length-1],days=Math.round((today-dayDate(last.date))/86400000),rpe=Number(last.rpe)||0;
-  if(days<0||days>3||rpe<8)return {action:'none',days,note:''};
-  if(days<=1)return {action:'rest',days,note:'Nakon natjecanja prioritet su oporavak, hidracija, prehrana, san i lagano kretanje.'};
-  if(days===2)return {action:'recovery',days,note:'Danas samo lagani aerobni rad i mobility; bez intenzivnog WOD-a.'};
-  return {action:'reduce',days,note:'Povratak u trening je progresivan; smanjen volumen i bez maksimalnog intenziteta.'};
 }
 function wodLoad(ex,reps,w){
   const map={
@@ -172,7 +162,7 @@ function wodLoad(ex,reps,w){
     'DB Thruster':{anchor:'squat',pct:.18,unit:'each'},
     'Wall Ball':{anchor:'squat',pct:.10,unit:'ball'},
     'KB Swing':{anchor:'deadlift',pct:.22,unit:'kb'},
-    'DB Snatch':{anchor:'deadlift',pct:.16,unit:'each'}
+    'DB Snatch':{anchor:'deadlift',pct:.16,unit:'each'},'DB Hang Clean':{anchor:'deadlift',pct:.14,unit:'each'}
   };
   const m=map[ex],rm=S.rm[m?.anchor];
   if(!m||!rm)return null;
@@ -216,6 +206,15 @@ function fatigueStatus(){const f=dynamicFatigueState(iso(sel));return {level:f.l
 function adaptiveRunDecision(date=iso(sel)){const f=dynamicFatigueState(date),ri=readinessImpact(),recent=(S.activities||[]).filter(a=>a.date===date&&a.planned===false&&a.type==='Natjecanje');if(recent.length||f.level==='high'||ri.level==='red')return {action:'rest',label:'ODMOR OD TRČANJA',note:recent.length?'Natjecanje je danas — ne dodajamo trkački trening.':(ri.level==='red'?'Readiness je nizak — ne forsiramo trčanje.':f.note)};if(f.level==='moderate'||ri.level==='yellow')return {action:'reduce',volume:.72,paceFactor:1.05,label:'OPORAVAK / REDUKCIJA',note:'Smanjen volumen i sporiji cilj kako bi se zadržao trening bez nepotrebnog dodatnog umora.'};return {action:'normal',volume:1,paceFactor:1,label:'PLANIRANI TRENING',note:'Normalna progresija prema cilju.'};}
 function runPaceForDistance(distance,w){const base=runTrainingPace();if(!base)return null;const km=Number(String(distance).match(/[\d.]+/)?.[0]||0.4);const factor=km<=.2?.96:km<=.4?1:km<=.8?1.03:1.06;const phaseFactor=w>=6?.98:w>=3?.99:1,a=adaptiveRunDecision(iso(sel));return Math.round(base*factor*phaseFactor*a.paceFactor);}
 function runDistanceForFatigue(distance,date=iso(sel)){const a=adaptiveRunDecision(date),km=Number(String(distance).match(/[\d.]+/)?.[0]||0);if(!km||a.action!=='reduce')return distance;return String(Math.max(.2,Math.round(km*a.volume*10)/10)).replace('.0','')+' km';}
+function wodRecoveryGate(date=iso(sel)){
+  const comp=competitionRecoveryState(date),f=dynamicFatigueState(date),ri=readinessImpact();
+  if(comp.action==='rest')return {action:'rest',label:'POST-RACE REST',note:comp.note};
+  if(comp.action==='recovery')return {action:'recovery',label:'POST-RACE RECOVERY',note:comp.note};
+  if(f.level==='high')return {action:'rest',label:'VISOK UMOR',note:'WOD je blokiran kao intenzivan trening. Prioritet su oporavak i mobility.'};
+  if(ri.level==='red')return {action:'recovery',label:'LOW READINESS',note:'Readiness je prenizak za planirani intenzivitet. Prebacujemo dan u lagani oporavak.'};
+  if(f.level==='moderate'||ri.level==='yellow')return {action:'reduce',label:'REDUCIRANI WOD',note:'Smanjujemo volumen/intenzitet, ali zadržavamo obrazac treninga.'};
+  return {action:'normal',label:'PLANIRANI WOD',note:'Nema signala za automatski veto nad planiranim WOD-om.'};
+}
 function wodMovesForToday(moves,w,date=iso(sel)){return moves.map(m=>{if(m[0]!=='Run')return m;const a=adaptiveRunDecision(date);if(a.action==='rest')return ['Recovery / Rest','—'];if(a.action==='reduce')return ['Run',runDistanceForFatigue(m[1],date)];return m;});}
 function bmiValue(){const h=Number(S.profile?.height)/100,w=Number(S.profile?.weight);return h>0&&w>0?w/(h*h):null;}
 function bmiLabel(b){if(!b)return '—';if(b<18.5)return 'Underweight';if(b<25)return 'Healthy range';if(b<30)return 'Overweight';return 'High BMI';}
@@ -316,9 +315,37 @@ const SUB={
   'Row':[['Run','400 m'],['Bike','12 cal'],['SkiErg','10 cal']],
   'Run':[['Bike','12 cal'],['Row','500 m'],['SkiErg','10 cal']],
   'Bike':[['Run','300 m'],['Row','400 m'],['SkiErg','10 cal']],
-  'Pull-up':[['Ring Row','10'],['Lat Pulldown','10']],
-  'Burpees':[['Bike','10 cal'],['Run','100 m']],
-  'Wall Ball':[['Goblet Squat','15'],['DB Thruster','10']]
+  'SkiErg':[['Row','10 cal'],['Bike','10 cal'],['Run','200 m']],
+  'Pull-up':[['Chin-up','6'],['Ring Row','10'],['Lat Pulldown','10']],
+  'Chin-up':[['Pull-up','5'],['Ring Row','10'],['Lat Pulldown','10']],
+  'Ring Row':[['Pull-up','5'],['Lat Pulldown','10'],['Chin-up','6']],
+  'Push-ups':[['Hand-release Push-up','10'],['DB Bench Press','10'],['Pike Push-up','8']],
+  'Hand-release Push-up':[['Push-ups','10'],['Pike Push-up','8'],['DB Bench Press','10']],
+  'Pike Push-up':[['Push-ups','10'],['Handstand Hold','20 s'],['DB Press','10']],
+  'Burpee':[['Bike','10 cal'],['Run','100 m'],['Burpee Step-back','8']],
+  'Wall Ball':[['Goblet Squat','15'],['DB Thruster','10'],['Air Squat','20']],
+  'DB Thruster':[['Wall Ball','12'],['Goblet Squat','15'],['Push Press','10']],
+  'Box Jump':[['Step-up','10'],['Broad Jump','6'],['Squat Jump','8']],
+  'Broad Jump':[['Box Jump','6'],['Lateral Bound','10'],['Step-up','10']],
+  'Lateral Bound':[['Skater Hop','10'],['Broad Jump','6'],['Step-up','10']],
+  'Power Clean':[['DB Hang Clean','8'],['KB High Pull','10'],['Goblet Squat','12']],
+  'Clean & Jerk':[['DB Clean & Push Press','8'],['DB Hang Clean','8'],['KB Clean','8']],
+  'Power Snatch':[['DB Snatch','8'],['KB Snatch','8'],['High Pull','10']],
+  'DB Snatch':[['KB Snatch','8'],['DB Hang Clean','8'],['Bike','10 cal']],
+  'KB Swing':[['DB RDL','10'],['KB Deadlift','12'],['Bike','10 cal']],
+  'Farmer Carry':[['Suitcase Carry','30 m/strana'],['Front Rack Carry','30 m'],['Bike','10 cal']],
+  'Toes-to-Bar':[['Knee Raise','10'],['V-up','10'],['Sit-up','12']],
+  'V-up':[['Sit-up','12'],['Dead Bug','10'],['Knee Raise','10']],
+  'Hollow Hold':[['Dead Bug','10/strana'],['Plank','30 s'],['Hollow Rock','10']],
+  'Hollow Rock':[['Hollow Hold','20 s'],['V-up','10'],['Dead Bug','10']],
+  'Handstand Hold':[['Pike Hold','20 s'],['Pike Push-up','8'],['DB Press','10']],
+  'Air Squat':[['Goblet Squat','12'],['Reverse Lunge','12'],['Wall Ball','10']],
+  'Reverse Lunge':[['Walking Lunge','12'],['Air Squat','15'],['Step-up','10']],
+  'Walking Lunge':[['Reverse Lunge','12'],['Step-up','10'],['Goblet Squat','12']],
+  'Cossack Squat':[['Reverse Lunge','10'],['Lateral Lunge','10'],['Goblet Squat','12']],
+  'Bear Crawl':[['Mountain Climber','16'],['Burpee','6'],['Farmer Carry','30 m']],
+  'Scapular Push-up':[['Push-ups','10'],['Band Pull-apart','12'],['Ring Row','8']],
+  'Dead Bug':[['Hollow Hold','20 s'],['V-up','8'],['Plank','30 s']]
 };
 function scheme(ex,w){
   const primary={
@@ -620,7 +647,7 @@ $('imp').onclick=()=>$('file').click();
 $('file').onchange=e=>{const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render(iso(sel));toast('Backup uvezen');}catch(err){toast('Neispravan backup');}};r.readAsText(e.target.files[0]);};
 document.getElementById('openGoals').onclick=()=>document.querySelector('.nav button[data-p="goals"]').click();
 document.getElementById('saveGoals').onclick=()=>{const d=+document.getElementById('goalRunDistanceInput').value,ct=document.getElementById('goalRunCurrentInput').value.trim(),tt=document.getElementById('goalRunTargetInput').value.trim();if(d>0&&paceToSec(ct)&&paceToSec(tt)){S.goals.runDistance=d;S.goals.runCurrentTime=ct;S.goals.runTargetTime=tt;}S.goals.squatTarget=+document.getElementById('goalSquatTargetInput').value||S.goals.squatTarget;S.goals.pullTarget=+document.getElementById('goalPullTargetInput').value||S.goals.pullTarget;S.goals.kbSwing=+document.getElementById('goalKBInput').value||S.goals.kbSwing;save();renderGoals();render(iso(sel));toast('✓ Goals spremljeni');};
-document.getElementById('saveProfile').onclick=()=>{S.profile={name:document.getElementById('profileName').value.trim(),sex:document.getElementById('profileSex').value,height:+document.getElementById('profileHeight').value||null,weight:+document.getElementById('profileWeight').value||null,bodyfat:+document.getElementById('profileBFInput').value||null};save();renderProfileData();toast('✓ Profil spremljen');};
+['profileHeight','profileWeight'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',()=>{const b=bmiValue();const out=document.getElementById('profileBMI'),lab=document.getElementById('profileBMILabel');if(out)out.textContent=b?b.toFixed(1):'—';if(lab)lab.textContent=bmiLabel(b);});});document.getElementById('saveProfile').onclick=()=>{S.profile={name:document.getElementById('profileName').value.trim(),sex:document.getElementById('profileSex').value,height:+document.getElementById('profileHeight').value||null,weight:+document.getElementById('profileWeight').value||null,bodyfat:+document.getElementById('profileBFInput').value||null};save();renderProfileData();toast('✓ Profil spremljen');};
 document.getElementById('calcTest').onclick=()=>{
   const kg=+document.getElementById('testKg').value,reps=+document.getElementById('testReps').value,ex=document.getElementById('testEx').value;
   const names={squat:'Back Squat',deadlift:'Deadlift',bench:'Bench Press',press:'Strict Press'};
