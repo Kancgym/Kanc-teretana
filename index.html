@@ -14,7 +14,7 @@
 const DAYS=[
   ['PON','WOD 1','Mixed conditioning'],
   ['UTO','STRENGTH A','Squat + press'],
-  ['SRI','WOD 2','Olympic lifting + engine'],
+  ['SRI','1RM TEST','Projected 1RM testing'],
   ['ČET','REST','Recovery'],
   ['PET','STRENGTH B','Deadlift + pull'],
   ['SUB','WOD 3','Aerobic mixed modal'],
@@ -132,6 +132,9 @@ function render(s){
   if(x[1]==='REST'){
     $('body').innerHTML='<div class="ex"><b>Oporavak</b><p class="muted">Mobilnost, lagana šetnja i regeneracija.</p></div>';
     $('start').style.display='none';
+  }else if(x[1]==='1RM TEST'){
+    $('body').innerHTML='<div class="card"><b>Projektirani 1RM test</b><p class="muted">Danas testiramo Back Squat, Deadlift, Bench Press i Strict Press. Za svaku vježbu dođi do približno 90% očekivanog maksimuma i napravi maksimalan broj tehnički kvalitetnih ponavljanja.</p><p class="muted">Preporuka: 2–6 ponavljanja. Nakon svake vježbe upiši rezultat u Postavke → Projektirani 1RM.</p></div><div class="grid2"><div class="card"><b>1</b><br>Back Squat</div><div class="card"><b>2</b><br>Deadlift</div><div class="card"><b>3</b><br>Bench Press</div><div class="card"><b>4</b><br>Strict Press</div></div>';
+    $('start').style.display='block';
   }else if(x[1].startsWith('STRENGTH')){
     $('body').innerHTML='<div class="card"><b>Predložene težine</b><p class="muted">1RM + tjedni plan + prethodni RPE. Aplikacija predlaže, ti odlučuješ.</p></div>'+strength(dow,w).map(e=>'<div class="ex"><b>'+e[0]+'</b><div class="muted">'+e[1]+planLabel(e[0],w)+'</div></div>').join('');
     $('start').style.display='block';
@@ -166,25 +169,22 @@ function startWorkout(){
   const q=info(iso(sel)),x=DAYS[q.dow];
   $('active').classList.remove('hidden');
   $('activeTitle').textContent=x[1];
-  if(x[1].startsWith('STRENGTH')){
+  if(x[1]==='1RM TEST'){
+    const ex=[['squat','Back Squat'],['deadlift','Deadlift'],['bench','Bench Press'],['press','Strict Press']];
+    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">PROJECTED 1RM TEST</div><h2>Današnji test</h2><p class="muted">Za svaku vježbu: zagrijavanje → približno 90% očekivanog maksimuma → maksimalan broj tehnički kvalitetnih ponavljanja. Ne forsiraj tehniku.</p></div>'+
+      ex.map(e=>'<div class="exercise-row"><div><b>'+e[1]+'</b><div class="muted">Rezultat unosiš nakon testa u Postavke → Projektirani 1RM</div></div><span class="pill">TEST</span></div>').join('')+
+      '<div class="card"><b>Redoslijed</b><p class="muted">1. Back Squat → 2. Deadlift → 3. Bench Press → 4. Strict Press</p><p class="muted">Odmor između glavnih testova 3–5 min, prema potrebi i više ako želiš kvalitetan rezultat.</p></div>';
+  }else if(x[1].startsWith('STRENGTH')){
     const ex=strength(q.dow,q.w);
     $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">STRENGTH SESSION</div><h2>'+x[1]+'</h2><p class="muted">Upiši stvarno odrađenu težinu, ponavljanja i RPE po seriji. ✓ označava završenu seriju.</p></div>'+
-    ex.map((e,ei)=>{
-      const n=parseInt(e[1])||3;
-      return '<div class="ex"><div class="row"><div><b>'+e[0]+'</b><div class="muted">Plan · '+e[1]+'</div></div><button class="sub-btn" data-subex="'+e[0]+'">🔄</button></div>'+
-      Array.from({length:n},(_,j)=>'<div class="set" data-setrow><span>'+(j+1)+'</span><input data-w type="number" inputmode="decimal" placeholder="kg"><input data-r type="number" inputmode="numeric" placeholder="reps"><input data-rpe type="number" step=".5" inputmode="decimal" placeholder="RPE"><button class="setcheck" data-ok type="button">○</button></div>').join('')+
-      '</div>';
-    }).join('');
+    ex.map((e,ei)=>{const n=parseInt(e[1])||3;return '<div class="ex"><div class="row"><div><b>'+e[0]+'</b><div class="muted">Plan · '+e[1]+planLabel(e[0],q.w)+'</div></div></div>'+Array.from({length:n},(_,j)=>'<div class="set" data-setrow><span>'+(j+1)+'</span><input data-exercise="'+e[0]+'" data-w type="number" inputmode="decimal" placeholder="kg"><input data-exercise="'+e[0]+'" data-r type="number" inputmode="numeric" placeholder="reps"><input data-exercise="'+e[0]+'" data-rpe type="number" step=".5" inputmode="decimal" placeholder="RPE"><button class="setcheck" data-ok type="button">○</button></div>').join('')+'</div>';}).join('');
     document.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{b.textContent=b.textContent==='✓'?'○':'✓';b.closest('.set').classList.toggle('done');});
   }else{
     const z=getWod(q.w,q.dow);
-    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2><p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p></div>'+
-      '<div class="card">'+z[2].map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+'</div></div><button class="sub-btn" data-subwod="'+m[0]+'">🔄</button></div>';}).join('')+'</div>'+
-      '<div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div>';
+    $('activeBody').innerHTML='<div class="workout-head"><div class="eyebrow">'+z[1]+'</div><h2>'+z[0]+'</h2><p class="muted">Originalni WOD. Ako želiš zamjenu, koristi 🔄 Promijeni prije starta.</p></div><div class="card">'+z[2].map((m,i)=>{const v=S.mods[z[0]+'|'+m[0]]||m;return '<div class="exercise-row"><div><span class="exercise-num">'+(i+1)+'. </span><b>'+v[0]+'</b><div class="muted">'+v[1]+'</div></div></div>';}).join('')+'</div><div class="workout-head"><div class="eyebrow">WOD TIMER</div><div class="wod-clock" id="wodClock">00:00</div><button class="primary start-big" id="wodStart">▶ START TIMER</button><button class="start-big hidden" id="wodStop">■ STOP</button></div>';
     $('wodStart').onclick=()=>{clearInterval(timer);const started=Date.now();$('wodStart').classList.add('hidden');$('wodStop').classList.remove('hidden');timer=setInterval(()=>{$('wodClock').textContent=new Date(Date.now()-started).toISOString().slice(14,19)},250);};
-    $('wodStop').onclick=()=>{clearInterval(timer);$('wodStop').classList.add('hidden');$('wodStart').classList.remove('hidden');$('mins').value=Math.round((new Date('1970-01-01T'+$('wodClock').textContent+'Z')-new Date('1970-01-01T00:00:00Z'))/60000*10)/10;toast('⏱ Vrijeme zaustavljeno');};
+    $('wodStop').onclick=()=>{clearInterval(timer);$('wodStop').classList.add('hidden');$('wodStart').classList.remove('hidden');toast('⏱ Vrijeme zaustavljeno');};
   }
-  document.querySelectorAll('[data-subex]').forEach(b=>b.onclick=()=>toast('Za zamjenu koristi 🔄 Promijeni prije START-a.'));
   $('finish').textContent='✓ ZAVRŠI';
 }
 function saveWorkout(){
